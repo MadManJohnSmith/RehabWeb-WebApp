@@ -23,6 +23,13 @@ export const routes: Routes = [
         (m) => m.EvaluacionBaselineComponent
       ),
   },
+  {
+    path: 'clinico/historial',
+    loadComponent: () =>
+      import('./screens/clinico/historial-clinico/historial-clinico').then(
+        (m) => m.HistorialClinicoComponent
+      ),
+  },
 
   { path: '**', redirectTo: 'landing' },
 ];

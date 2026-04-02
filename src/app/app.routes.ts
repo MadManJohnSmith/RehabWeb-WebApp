@@ -30,6 +30,13 @@ export const routes: Routes = [
         (m) => m.HistorialClinicoComponent
       ),
   },
+  {
+  path: 'citas/calendario',
+  loadComponent: () =>
+    import('./screens/citas/calendario/calendario').then(
+      (m) => m.CalendarioComponent
+    ),
+},
 
   { path: '**', redirectTo: 'landing' },
 ];

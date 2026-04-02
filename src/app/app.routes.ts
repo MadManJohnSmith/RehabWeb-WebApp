@@ -16,6 +16,13 @@ export const routes: Routes = [
         (m) => m.PerfilClinicoComponent
       ),
   },
+  {
+    path: 'clinico/evaluacion',
+    loadComponent: () =>
+      import('./screens/clinico/evaluacion-baseline/evaluacion-baseline').then(
+        (m) => m.EvaluacionBaselineComponent
+      ),
+  },
 
   { path: '**', redirectTo: 'landing' },
 ];

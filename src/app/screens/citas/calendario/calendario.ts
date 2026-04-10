@@ -62,6 +62,7 @@ import { ClinicoService } from '../../../services/clinico.service';
                   [class.pendiente]="c.estado === 'Pendiente'">
                   {{ c.estado }}
                 </span>
+                <button class="btn-eliminar" (click)="eliminarCita(c.id)">✕</button>
               </div>
             </div>
 
@@ -332,6 +333,17 @@ import { ClinicoService } from '../../../services/clinico.service';
       flex-direction: column;
       gap: 1rem;
     }
+    .btn-eliminar {
+      background: transparent;
+      border: none;
+      color: #FF5C5C;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      transition: background 200ms;
+    }
+    .btn-eliminar:hover { background: #FFF0F0; }
 
     .grid-2 {
       display: grid;
@@ -447,6 +459,14 @@ export class CalendarioComponent implements OnInit {
       return parseInt(partes[2]) === dia &&
         parseInt(partes[1]) - 1 === this.mes &&
         parseInt(partes[0]) === this.anio;
+    });
+  }
+  eliminarCita(id: string) {
+    this.clinicoService.eliminarCita(id).subscribe({
+      next: () => {
+        this.citas.update(list => list.filter((c: any) => c.id !== id));
+      },
+      error: (err) => console.error(err)
     });
   }
 

@@ -95,4 +95,8 @@ export class ClinicoService {
   actualizarCita(id: string, cita: Cita): Observable<Cita> {
     return this.http.put<Cita>(`${API}/citas/${id}/`, cita);
   }
+  
+  eliminarCita(id: string): Observable<any> {
+    return this.http.delete(`${API}/citas/${id}/`);
+  }
 }

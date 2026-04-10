@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ClinicoService } from '../../../services/clinico.service';
 
 @Component({
   selector: 'app-historial-clinico',
@@ -335,19 +336,46 @@ import { FormsModule } from '@angular/forms';
     }
   `]
 })
-export class HistorialClinicoComponent {
+export class HistorialClinicoComponent implements OnInit {
+  private clinicoService = inject(ClinicoService);
+  private cdr = inject(ChangeDetectorRef);
+
   busqueda = '';
   periodo = 'todas';
   nuevaNota = '';
+  cargando = false;
+  error = '';
 
-  evaluaciones = [
-    { fecha: '01/01/2026', fma: 58,  tug: 28, bbs: 18, moca: 16, ssqol: 89,  notas: 'Evaluación inicial' },
-    { fecha: '15/01/2026', fma: 72,  tug: 24, bbs: 22, moca: 18, ssqol: 105, notas: 'Mejora en movilidad' },
-    { fecha: '01/02/2026', fma: 95,  tug: 20, bbs: 28, moca: 20, ssqol: 128, notas: 'Progreso sostenido' },
-    { fecha: '15/02/2026', fma: 118, tug: 17, bbs: 33, moca: 22, ssqol: 152, notas: 'Buena adherencia' },
-    { fecha: '01/03/2026', fma: 140, tug: 14, bbs: 39, moca: 24, ssqol: 174, notas: 'Recuperación notable' },
-    { fecha: '15/03/2026', fma: 162, tug: 11, bbs: 44, moca: 26, ssqol: 196, notas: 'Casi independiente' },
-  ];
+  evaluaciones: any[] = [];
+
+  ngOnInit() {
+    this.cargarEvaluaciones();
+  }
+
+  cargarEvaluaciones() {
+    this.cargando = true;
+    this.clinicoService.getEvaluaciones().subscribe({
+      next: (data) => {
+        this.evaluaciones = data.map((e: any, i: number, arr: any[]) => ({
+          fecha: new Date(e.created_at).toLocaleDateString('es-MX'),
+          fma: e.fma,
+          tug: e.tug,
+          bbs: e.bbs,
+          moca: e.moca,
+          ssqol: e.ssqol,
+          notas: e.observaciones || ''
+        })).reverse();
+        this.cargando = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.error = 'Error al cargar evaluaciones.';
+        this.cargando = false;
+        this.cdr.detectChanges();
+        console.error(err);
+      }
+    });
+  }
 
   get evaluacionesFiltradas() {
     return this.evaluaciones;
@@ -359,32 +387,31 @@ export class HistorialClinicoComponent {
     const penultima = this.evaluaciones[this.evaluaciones.length - 2];
 
     if (ultima && penultima && (ultima.fma - penultima.fma) < -5) {
-      alertas.push({ tipo: 'danger', mensaje: 'Deterioro significativo en FMA: descenso de más de 5 puntos en las últimas 2 semanas.' });
+      alertas.push({ tipo: 'danger', mensaje: 'Deterioro significativo en FMA: descenso de más de 5 puntos.' });
     }
-
     if (ultima && ultima.bbs < 21) {
       alertas.push({ tipo: 'danger', mensaje: 'Alto riesgo de caída: BBS menor a 21 puntos.' });
     }
-
     if (ultima && ultima.moca < 18) {
       alertas.push({ tipo: 'warning', mensaje: 'Deterioro cognitivo detectado: MoCA menor a 18 puntos.' });
     }
-
     return alertas;
   }
 
   agregarNota() {
     if (!this.nuevaNota.trim()) return;
     const hoy = new Date().toLocaleDateString('es-MX');
+    const ultima = this.evaluaciones[this.evaluaciones.length - 1];
     this.evaluaciones.push({
       fecha: hoy,
-      fma: this.evaluaciones[this.evaluaciones.length - 1].fma,
-      tug: this.evaluaciones[this.evaluaciones.length - 1].tug,
-      bbs: this.evaluaciones[this.evaluaciones.length - 1].bbs,
-      moca: this.evaluaciones[this.evaluaciones.length - 1].moca,
-      ssqol: this.evaluaciones[this.evaluaciones.length - 1].ssqol,
+      fma: ultima?.fma || 0,
+      tug: ultima?.tug || 0,
+      bbs: ultima?.bbs || 0,
+      moca: ultima?.moca || 0,
+      ssqol: ultima?.ssqol || 0,
       notas: this.nuevaNota
     });
     this.nuevaNota = '';
+    this.cdr.detectChanges();
   }
 }

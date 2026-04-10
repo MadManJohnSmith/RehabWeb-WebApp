@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ClinicoService } from '../../../services/clinico.service';
 
 @Component({
   selector: 'app-perfil-clinico',
@@ -107,16 +108,29 @@ import { FormsModule } from '@angular/forms';
           </section>
 
           <!-- CONTACTO DE EMERGENCIA -->
+          <!-- FAMILIAR RESPONSABLE -->
           <section>
-            <h2>Contacto de Emergencia</h2>
+            <h2>Familiar / Tutor Responsable</h2>
             <div class="grid-2">
               <div class="field">
-                <label>Nombre del contacto *</label>
-                <input type="text" [(ngModel)]="perfil.contactoNombre" name="contactoNombre" placeholder="Nombre completo" required />
+                <label>Nombre del familiar *</label>
+                <input type="text" [(ngModel)]="perfil.familiarNombre" name="familiarNombre" placeholder="Nombre completo" required />
               </div>
               <div class="field">
-                <label>Teléfono *</label>
-                <input type="tel" [(ngModel)]="perfil.contactoTel" name="contactoTel" placeholder="Ej. 55 1234 5678" required />
+                <label>Parentesco *</label>
+                <select [(ngModel)]="perfil.familiarParentesco" name="familiarParentesco" required>
+                  <option value="">Seleccionar...</option>
+                  <option value="Cónyuge">Cónyuge</option>
+                  <option value="Hijo/a">Hijo/a</option>
+                  <option value="Padre/Madre">Padre/Madre</option>
+                  <option value="Hermano/a">Hermano/a</option>
+                  <option value="Tutor legal">Tutor legal</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Teléfono de emergencia *</label>
+                <input type="tel" [(ngModel)]="perfil.familiarTel" name="familiarTel" placeholder="Ej. 55 1234 5678" required />
               </div>
               <div class="field">
                 <label>Clínica principal</label>
@@ -125,12 +139,25 @@ import { FormsModule } from '@angular/forms';
             </div>
           </section>
 
+          <!-- CONSENTIMIENTO -->
+          <section>
+            <h2>Consentimiento Informado</h2>
+            <div class="consentimiento">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="perfil.consentimiento" name="consentimiento" required />
+                <span>Acepto el <strong>Aviso de Privacidad</strong> y el manejo de mis datos sensibles conforme a la <strong>Ley General de Protección de Datos Personales</strong>. Doy mi consentimiento informado para el tratamiento de rehabilitación digital.</span>
+              </label>
+            </div>
+          </section>
+
           <!-- BOTONES -->
           <div class="actions">
             <button type="button" class="btn-secondary" (click)="limpiar()">Limpiar</button>
-            <button type="submit" class="btn-primary">Guardar Perfil Clínico</button>
+            <button type="submit" class="btn-primary" [disabled]="cargando">
+              {{ cargando ? 'Guardando...' : 'Guardar Perfil Clínico' }}
+            </button>
           </div>
-
+          <p class="error" *ngIf="error">{{ error }}</p>
         </form>
 
         <!-- CONFIRMACIÓN -->
@@ -166,6 +193,29 @@ import { FormsModule } from '@angular/forms';
       padding: 2rem;
     }
 
+    .consentimiento {
+      background: #F8FAFC;
+      border-radius: 8px;
+      padding: 1rem;
+      border: 1px solid #E2E8F0;
+    }
+
+    .checkbox-label {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      font-size: 14px;
+      color: #1A2B3E;
+      cursor: pointer;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      accent-color: #00A781;
+      margin-top: 2px;
+    }
     .card-header h1 {
       margin: 0 0 0.5rem;
       font-size: 24px;
@@ -288,6 +338,11 @@ import { FormsModule } from '@angular/forms';
       color: #1A2B3E;
       font-size: 14px;
     }
+    .error {
+      color: #FF5C5C;
+      font-size: 14px;
+      margin: 0;
+    }
 
     @media (max-width: 600px) {
       .grid-2 { grid-template-columns: 1fr; }
@@ -295,8 +350,12 @@ import { FormsModule } from '@angular/forms';
   `]
 })
 export class PerfilClinicoComponent {
+  private clinicoService = inject(ClinicoService);
+  
   guardado = false;
   folio = '';
+  cargando = false;
+  error = '';
 
   perfil = {
     nombre: '',
@@ -312,26 +371,63 @@ export class PerfilClinicoComponent {
     historialMedico: '',
     restricciones: '',
     objetivos: '',
-    contactoNombre: '',
-    contactoTel: '',
-    clinica: ''
+    familiarNombre: '',
+    familiarParentesco: '',
+    familiarTel: '',
+    clinica: '',
+    consentimiento: false
   };
 
   guardar() {
-    this.folio = 'RHB-' + Date.now().toString().slice(-6);
-    this.guardado = true;
-    console.log('Perfil guardado:', this.perfil);
+    this.cargando = true;
+    this.error = '';
+
+    const datos = {
+      nombre: this.perfil.nombre,
+      fecha_nacimiento: this.perfil.fechaNacimiento,
+      sexo: this.perfil.sexo,
+      ubicacion: this.perfil.ubicacion,
+      diagnostico: this.perfil.diagnostico,
+      fecha_acv: this.perfil.fechaACV,
+      tipo_acv: this.perfil.tipoACV,
+      nivel_movilidad: Number(this.perfil.nivelMovilidad),
+      comorbilidades: this.perfil.comorbilidades,
+      medicamentos: this.perfil.medicamentos,
+      historial_medico: this.perfil.historialMedico,
+      restricciones: this.perfil.restricciones,
+      objetivos: this.perfil.objetivos,
+      familiar_nombre: this.perfil.familiarNombre,
+      familiar_parentesco: this.perfil.familiarParentesco,
+      familiar_tel: this.perfil.familiarTel,
+      clinica: this.perfil.clinica,
+      consentimiento: this.perfil.consentimiento
+    };
+
+    this.clinicoService.crearPerfil(datos).subscribe({
+      next: (respuesta) => {
+        this.folio = respuesta.folio || '';
+        this.guardado = true;
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.error = 'Error al guardar. Verifica que el backend esté corriendo.';
+        this.cargando = false;
+        console.error(err);
+      }
+    });
   }
 
   limpiar() {
     this.guardado = false;
     this.folio = '';
+    this.error = '';
     this.perfil = {
       nombre: '', fechaNacimiento: '', sexo: '', ubicacion: '',
       diagnostico: '', fechaACV: '', tipoACV: '', nivelMovilidad: '',
       comorbilidades: '', medicamentos: '', historialMedico: '',
-      restricciones: '', objetivos: '', contactoNombre: '',
-      contactoTel: '', clinica: ''
+      restricciones: '', objetivos: '', familiarNombre: '',
+      familiarParentesco: '', familiarTel: '', clinica: '',
+      consentimiento: false
     };
   }
 }

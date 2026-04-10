@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ClinicoService } from '../../../services/clinico.service';
 
 @Component({
   selector: 'app-evaluacion-baseline',
@@ -15,6 +16,18 @@ import { FormsModule } from '@angular/forms';
         </div>
 
         <form class="form" (ngSubmit)="guardar()">
+          <!-- ID DEL PERFIL -->
+          <section>
+            <h2>Paciente</h2>
+            <div class="field">
+              <label>ID del Perfil Clínico *</label>
+              <input type="text" [(ngModel)]="perfilId" name="perfilId" 
+                placeholder="Ej. 8b95d6b5-507d-4406-8c96-6ca3670aadb9" />
+              <small style="color:#707E8C; font-size:12px;">
+                Puedes encontrar el ID en el folio generado al guardar el perfil clínico.
+              </small>
+            </div>
+          </section>
 
           <!-- FMA -->
           <section>
@@ -128,12 +141,13 @@ import { FormsModule } from '@angular/forms';
             </div>
           </section>
 
-          <!-- BOTONES -->
           <div class="actions">
             <button type="button" class="btn-secondary" (click)="limpiar()">Limpiar</button>
-            <button type="submit" class="btn-primary">Guardar Evaluación Baseline</button>
+            <button type="submit" class="btn-primary" [disabled]="cargando">
+              {{ cargando ? 'Guardando...' : 'Guardar Evaluación Baseline' }}
+            </button>
           </div>
-
+          <p class="error" *ngIf="error">{{ error }}</p>
         </form>
 
         <!-- CONFIRMACIÓN -->
@@ -325,7 +339,13 @@ import { FormsModule } from '@angular/forms';
   `]
 })
 export class EvaluacionBaselineComponent {
+  private clinicoService = inject(ClinicoService);
+  private cdr = inject(ChangeDetectorRef);
+
   guardado = false;
+  cargando = false;
+  error = '';
+  perfilId = '';
 
   evaluacion = {
     fma: null as number | null,
@@ -333,6 +353,9 @@ export class EvaluacionBaselineComponent {
     bbs: null as number | null,
     moca: null as number | null,
     ssqol: null as number | null,
+    prognosis: '',
+    plan_cuidados: '',
+    fecha_reevaluacion: '',
     observaciones: ''
   };
 
@@ -377,15 +400,51 @@ export class EvaluacionBaselineComponent {
   }
 
   guardar() {
-    this.guardado = true;
-    console.log('Evaluación baseline:', this.evaluacion);
+    if (!this.perfilId) {
+      this.error = 'Ingresa el ID del perfil clínico del paciente.';
+      return;
+    }
+
+    this.cargando = true;
+    this.error = '';
+
+    const datos = {
+      perfil: this.perfilId,
+      fma: this.evaluacion.fma!,
+      tug: this.evaluacion.tug!,
+      bbs: this.evaluacion.bbs!,
+      moca: this.evaluacion.moca!,
+      ssqol: this.evaluacion.ssqol!,
+      prognosis: this.evaluacion.prognosis,
+      plan_cuidados: this.evaluacion.plan_cuidados,
+      fecha_reevaluacion: this.evaluacion.fecha_reevaluacion || undefined,
+      observaciones: this.evaluacion.observaciones
+    };
+
+    this.clinicoService.crearEvaluacion(datos).subscribe({
+      next: () => {
+        this.guardado = true;
+        this.cargando = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.error = 'Error: ' + JSON.stringify(err.error);
+        this.cargando = false;
+        this.cdr.detectChanges();
+        console.error(err.error);
+      }
+    });
   }
 
   limpiar() {
     this.guardado = false;
+    this.error = '';
+    this.perfilId = '';
     this.evaluacion = {
       fma: null, tug: null, bbs: null,
-      moca: null, ssqol: null, observaciones: ''
+      moca: null, ssqol: null, prognosis: '',
+      plan_cuidados: '', fecha_reevaluacion: '',
+      observaciones: ''
     };
   }
 }

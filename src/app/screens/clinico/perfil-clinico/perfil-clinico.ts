@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClinicoService } from '../../../services/clinico.service';
@@ -24,10 +24,12 @@ import { ClinicoService } from '../../../services/clinico.service';
               <div class="field">
                 <label>Nombre completo *</label>
                 <input type="text" [(ngModel)]="perfil.nombre" name="nombre" placeholder="Ej. Juan García López" required />
+                <span class="campo-error" *ngIf="errores.nombre">{{ errores.nombre }}</span>
               </div>
               <div class="field">
                 <label>Fecha de nacimiento *</label>
                 <input type="date" [(ngModel)]="perfil.fechaNacimiento" name="fechaNacimiento" required />
+                <span class="campo-error" *ngIf="errores.fechaNacimiento">{{ errores.fechaNacimiento }}</span>
               </div>
               <div class="field">
                 <label>Sexo *</label>
@@ -52,10 +54,12 @@ import { ClinicoService } from '../../../services/clinico.service';
               <div class="field">
                 <label>Diagnóstico principal *</label>
                 <input type="text" [(ngModel)]="perfil.diagnostico" name="diagnostico" placeholder="Ej. Accidente Cerebrovascular territorio MCA izquierdo" required />
+                <span class="campo-error" *ngIf="errores.diagnostico">{{ errores.diagnostico }}</span>
               </div>
               <div class="field">
                 <label>Fecha del ACV *</label>
                 <input type="date" [(ngModel)]="perfil.fechaACV" name="fechaACV" required />
+                <span class="campo-error" *ngIf="errores.fechaACV">{{ errores.fechaACV }}</span>
               </div>
               <div class="field">
                 <label>Tipo de ACV *</label>
@@ -115,6 +119,7 @@ import { ClinicoService } from '../../../services/clinico.service';
               <div class="field">
                 <label>Nombre del familiar *</label>
                 <input type="text" [(ngModel)]="perfil.familiarNombre" name="familiarNombre" placeholder="Nombre completo" required />
+                <span class="campo-error" *ngIf="errores.familiarNombre">{{ errores.familiarNombre }}</span>
               </div>
               <div class="field">
                 <label>Parentesco *</label>
@@ -131,6 +136,8 @@ import { ClinicoService } from '../../../services/clinico.service';
               <div class="field">
                 <label>Teléfono de emergencia *</label>
                 <input type="tel" [(ngModel)]="perfil.familiarTel" name="familiarTel" placeholder="Ej. 55 1234 5678" required />
+                <span class="campo-error" *ngIf="errores.familiarTel">{{ errores.familiarTel }}</span>
+
               </div>
               <div class="field">
                 <label>Clínica principal</label>
@@ -343,6 +350,11 @@ import { ClinicoService } from '../../../services/clinico.service';
       font-size: 14px;
       margin: 0;
     }
+    .campo-error {
+      color: #FF5C5C;
+      font-size: 12px;
+      margin-top: 2px;
+    }
 
     @media (max-width: 600px) {
       .grid-2 { grid-template-columns: 1fr; }
@@ -351,6 +363,7 @@ import { ClinicoService } from '../../../services/clinico.service';
 })
 export class PerfilClinicoComponent {
   private clinicoService = inject(ClinicoService);
+  private cdr = inject(ChangeDetectorRef);
   
   guardado = false;
   folio = '';
@@ -378,7 +391,81 @@ export class PerfilClinicoComponent {
     consentimiento: false
   };
 
+  errores: any = {};
+
+  validar(): boolean {
+    this.errores = {};
+
+    if (!this.perfil.nombre.trim()) {
+      this.errores.nombre = 'El nombre es obligatorio.';
+    } else if (/\d/.test(this.perfil.nombre)) {
+      this.errores.nombre = 'El nombre no puede contener números.';
+    }
+
+    if (!this.perfil.fechaNacimiento) {
+      this.errores.fechaNacimiento = 'La fecha de nacimiento es obligatoria.';
+    } else {
+      const hoy = new Date();
+      const nacimiento = new Date(this.perfil.fechaNacimiento);
+      if (nacimiento >= hoy) {
+        this.errores.fechaNacimiento = 'La fecha de nacimiento debe ser anterior a hoy.';
+      }
+    }
+
+    if (!this.perfil.sexo) {
+      this.errores.sexo = 'El sexo es obligatorio.';
+    }
+
+    if (!this.perfil.ubicacion.trim()) {
+      this.errores.ubicacion = 'La ubicación es obligatoria.';
+    }
+
+    if (!this.perfil.diagnostico.trim()) {
+      this.errores.diagnostico = 'El diagnóstico es obligatorio.';
+    }
+
+    if (!this.perfil.fechaACV) {
+      this.errores.fechaACV = 'La fecha del ACV es obligatoria.';
+    }
+
+    if (!this.perfil.tipoACV) {
+      this.errores.tipoACV = 'El tipo de ACV es obligatorio.';
+    }
+
+    if (!this.perfil.nivelMovilidad) {
+      this.errores.nivelMovilidad = 'El nivel de movilidad es obligatorio.';
+    }
+
+    if (!this.perfil.objetivos.trim()) {
+      this.errores.objetivos = 'Los objetivos son obligatorios.';
+    }
+
+    if (!this.perfil.familiarNombre.trim()) {
+      this.errores.familiarNombre = 'El nombre del familiar es obligatorio.';
+    } else if (/\d/.test(this.perfil.familiarNombre)) {
+      this.errores.familiarNombre = 'El nombre no puede contener números.';
+    }
+
+    if (!this.perfil.familiarParentesco) {
+      this.errores.familiarParentesco = 'El parentesco es obligatorio.';
+    }
+
+    if (!this.perfil.familiarTel.trim()) {
+      this.errores.familiarTel = 'El teléfono es obligatorio.';
+    } else if (!/^\d[\d\s]{7,}$/.test(this.perfil.familiarTel)) {
+      this.errores.familiarTel = 'El teléfono solo debe contener números.';
+    }
+
+    if (!this.perfil.consentimiento) {
+      this.errores.consentimiento = 'Debes aceptar el consentimiento informado.';
+    }
+
+    return Object.keys(this.errores).length === 0;
+  }
+
   guardar() {
+    if (!this.validar()) return;
+
     this.cargando = true;
     this.error = '';
 
@@ -408,10 +495,12 @@ export class PerfilClinicoComponent {
         this.folio = respuesta.folio || '';
         this.guardado = true;
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        this.error = 'Error al guardar. Verifica que el backend esté corriendo.';
+        this.error = 'Error: ' + JSON.stringify(err.error);
         this.cargando = false;
+        this.cdr.detectChanges();
         console.error(err);
       }
     });
@@ -421,6 +510,7 @@ export class PerfilClinicoComponent {
     this.guardado = false;
     this.folio = '';
     this.error = '';
+    this.errores = {};
     this.perfil = {
       nombre: '', fechaNacimiento: '', sexo: '', ubicacion: '',
       diagnostico: '', fechaACV: '', tipoACV: '', nivelMovilidad: '',

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ClinicoService } from '../../../services/clinico.service';
 
 @Component({
   selector: 'app-calendario',
@@ -71,6 +72,11 @@ import { FormsModule } from '@angular/forms';
             <!-- FORMULARIO NUEVA CITA -->
             <div class="nueva-cita">
               <h3>Agendar nueva cita</h3>
+               <div class="field">
+                <label>ID del Perfil Clínico *</label>
+                <input type="text" [(ngModel)]="perfilId" name="perfilId" 
+                  placeholder="Ej. 8b95d6b5-507d-4406-8c96-6ca3670aadb9" />
+              </div>
               <div class="grid-2">
                 <div class="field">
                   <label>Paciente *</label>
@@ -98,8 +104,11 @@ import { FormsModule } from '@angular/forms';
                 </div>
               </div>
               <div class="actions">
-                <button class="btn-primary" (click)="agendarCita()">Agendar Cita</button>
+                <button class="btn-primary" (click)="agendarCita()" [disabled]="cargando()">
+                  {{ cargando() ? 'Agendando...' : 'Agendar Cita' }}
+                </button>
               </div>
+              <p class="error" *ngIf="error">{{ error }}</p>
             </div>
 
           </section>
@@ -109,7 +118,7 @@ import { FormsModule } from '@angular/forms';
             <h2>Próximas Citas</h2>
             <div class="citas-dia">
               <div class="cita-item" *ngFor="let c of todasLasCitas">
-                <div class="cita-hora">{{ c.dia }}/{{ mes + 1 }}<br><small>{{ c.hora }}</small></div>
+                <div class="cita-hora">{{ c.fecha }}<br><small>{{ c.hora }}</small></div>
                 <div class="cita-info">
                   <strong>{{ c.paciente }}</strong>
                   <span>{{ c.tipo }}</span>
@@ -373,26 +382,24 @@ import { FormsModule } from '@angular/forms';
     }
   `]
 })
-export class CalendarioComponent {
+export class CalendarioComponent implements OnInit {
+  private clinicoService = inject(ClinicoService);
+
   hoy = new Date();
   mes = this.hoy.getMonth();
   anio = this.hoy.getFullYear();
   diaSeleccionado: number | null = null;
+  error = '';
+  perfilId = '';
 
   nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
   diasSemana = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-
   horasDisponibles = ['08:00','09:00','10:00','11:00','12:00',
     '13:00','15:00','16:00','17:00','18:00'];
 
-  citas: any[] = [
-    { dia: 5,  hora: '09:00', paciente: 'Ana García',    tipo: 'Presencial',   estado: 'Confirmada', motivo: '' },
-    { dia: 5,  hora: '11:00', paciente: 'Luis Martínez', tipo: 'Videollamada', estado: 'Pendiente',  motivo: '' },
-    { dia: 12, hora: '10:00', paciente: 'María López',   tipo: 'Presencial',   estado: 'Confirmada', motivo: '' },
-    { dia: 18, hora: '16:00', paciente: 'Carlos Ruiz',   tipo: 'Videollamada', estado: 'Confirmada', motivo: '' },
-  ];
+  citas = signal<any[]>([]);
+  cargando = signal(false);
 
   nuevaCita = { paciente: '', hora: '', tipo: '', motivo: '' };
 
@@ -408,10 +415,24 @@ export class CalendarioComponent {
     return Array(primero).fill(0);
   }
 
-  get todasLasCitas() { return this.citas; }
+  get todasLasCitas() { return this.citas(); }
 
   get citasDelDia() {
-    return this.citas.filter(c => c.dia === this.diaSeleccionado);
+    return this.citas().filter((c: any) => {
+      const partes = c.fecha.split('-');
+      return parseInt(partes[2]) === this.diaSeleccionado &&
+        parseInt(partes[1]) - 1 === this.mes &&
+        parseInt(partes[0]) === this.anio;
+    });
+  }
+
+  ngOnInit() { this.cargarCitas(); }
+
+  cargarCitas() {
+    this.clinicoService.getCitas().subscribe({
+      next: (data) => this.citas.set(data),
+      error: (err) => console.error(err)
+    });
   }
 
   esHoy(dia: number) {
@@ -421,7 +442,12 @@ export class CalendarioComponent {
   }
 
   tieneCita(dia: number) {
-    return this.citas.some(c => c.dia === dia);
+    return this.citas().some((c: any) => {
+      const partes = c.fecha.split('-');
+      return parseInt(partes[2]) === dia &&
+        parseInt(partes[1]) - 1 === this.mes &&
+        parseInt(partes[0]) === this.anio;
+    });
   }
 
   esDisponible(dia: number) {
@@ -446,15 +472,49 @@ export class CalendarioComponent {
   }
 
   agendarCita() {
-    if (!this.nuevaCita.paciente || !this.nuevaCita.hora || !this.nuevaCita.tipo) return;
-    this.citas.push({
-      dia: this.diaSeleccionado,
-      hora: this.nuevaCita.hora,
-      paciente: this.nuevaCita.paciente,
-      tipo: this.nuevaCita.tipo,
-      estado: 'Pendiente',
-      motivo: this.nuevaCita.motivo
+    if (!this.perfilId || !this.nuevaCita.hora || !this.nuevaCita.tipo) {
+      this.error = 'Completa todos los campos obligatorios.';
+      return;
+    }
+
+    this.cargando.set(true);
+    this.error = '';
+
+    const fecha = `${this.anio}-${String(this.mes + 1).padStart(2, '0')}-${String(this.diaSeleccionado).padStart(2, '0')}`;
+
+    const horaOcupada = this.citas().some((c: any) => {
+      const partes = c.fecha.split('-');
+      return parseInt(partes[2]) === this.diaSeleccionado &&
+        c.hora === this.nuevaCita.hora + ':00';
     });
-    this.nuevaCita = { paciente: '', hora: '', tipo: '', motivo: '' };
+
+    if (horaOcupada) {
+      this.error = 'Ya hay una cita a esa hora. Selecciona otra.';
+      this.cargando.set(false);
+      return;
+    }
+
+    const datos = {
+      perfil: this.perfilId,
+      fecha: fecha,
+      hora: this.nuevaCita.hora + ':00',
+      tipo: this.nuevaCita.tipo,
+      motivo: this.nuevaCita.motivo,
+      estado: 'Pendiente'
+    };
+
+    this.clinicoService.crearCita(datos).subscribe({
+      next: (cita) => {
+        this.citas.update(list => [...list, cita]);
+        this.nuevaCita = { paciente: '', hora: '', tipo: '', motivo: '' };
+        this.perfilId = '';
+        this.cargando.set(false);
+      },
+      error: (err) => {
+        this.error = 'Error al agendar: ' + JSON.stringify(err.error);
+        this.cargando.set(false);
+        console.error(err.error);
+      }
+    });
   }
 }

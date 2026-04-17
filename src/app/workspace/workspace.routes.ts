@@ -12,7 +12,45 @@ export const workspaceRoutes: Routes = [
         path: 'dashboard',
         loadComponent: () =>
           import('./pages/dashboard/dashboard-page.component').then((m) => m.DashboardPageComponent),
-        data: { title: 'Tablero — Resumen' },
+        data: { title: 'Tablero de control' },
+      },
+      {
+        path: 'pacientes',
+        loadComponent: () =>
+          import('./pages/patients/patients-list-page.component').then((m) => m.PatientsListPageComponent),
+        data: { title: 'Pacientes' },
+      },
+      {
+        path: 'pacientes/:patientId',
+        loadComponent: () =>
+          import('./pages/patients/patient-detail-page.component').then((m) => m.PatientDetailPageComponent),
+        data: { title: 'Perfil de paciente' },
+      },
+      {
+        path: 'historial-sesiones',
+        loadComponent: () =>
+          import('./pages/sessions/session-history-page.component').then((m) => m.SessionHistoryPageComponent),
+        data: { title: 'Historial de sesiones' },
+      },
+      {
+        path: 'comparativa',
+        loadComponent: () =>
+          import('./pages/shared/under-construction-page.component').then((m) => m.UnderConstructionPageComponent),
+        data: {
+          title: 'Comparativa de desempeño',
+          heading: 'Comparativa de desempeño',
+          description: 'Aquí se integrará el análisis comparativo clínico cuando el servidor esté listo.',
+        },
+      },
+      {
+        path: 'configuracion',
+        loadComponent: () =>
+          import('./pages/shared/under-construction-page.component').then((m) => m.UnderConstructionPageComponent),
+        data: {
+          title: 'Configuraciones',
+          heading: 'Configuraciones',
+          description: 'Parámetros globales y de usuario. Pendiente del servicio de administración.',
+        },
       },
       {
         path: 'alertas',

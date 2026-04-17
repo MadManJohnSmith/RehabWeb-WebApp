@@ -1,0 +1,33 @@
+<div class="mx-auto max-w-4xl space-y-6">
+  <div>
+    <p class="text-xs font-medium uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">Pacientes</p>
+    <h1 class="mt-1 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Directorio clínico</h1>
+    <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
+      Lista simulada; cada fila enlaza al perfil detallado (hasta conectar con el servidor).
+    </p>
+  </div>
+
+  <div class="space-y-3">
+    @for (p of patients; track p.id) {
+      <a
+        [routerLink]="['/app/pacientes', p.id]"
+        class="flex items-center gap-4 rounded-card border border-pm-border bg-pm-surface p-4 shadow-pm-sm transition hover:border-pm-primary/40 hover:shadow-pm-md dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark dark:hover:border-pm-primary/50"
+      >
+        <div
+          class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-pm-primary-soft text-sm font-bold text-pm-primary dark:bg-pm-primary-soft-dark dark:text-pm-primary"
+        >
+          {{ p.name.slice(0, 1) }}
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ p.name }}</p>
+          <p class="truncate text-sm text-pm-muted dark:text-pm-muted-dark">{{ p.condition }}</p>
+        </div>
+        <div class="hidden shrink-0 text-right text-xs text-pm-muted sm:block dark:text-pm-muted-dark">
+          <p class="font-medium text-pm-ink dark:text-pm-ink-on-dark">Última sesión</p>
+          <p>{{ p.lastSession }}</p>
+        </div>
+        <app-ui-icon name="chevron-right" [size]="20" class="shrink-0 text-pm-muted dark:text-pm-muted-dark" />
+      </a>
+    }
+  </div>
+</div>

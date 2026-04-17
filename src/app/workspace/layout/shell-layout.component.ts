@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { ThemeService } from '../../core/theme.service';
+import { ToastService } from '../../core/toast.service';
 import { ShellSidebarComponent } from '../components/shell-sidebar/shell-sidebar.component';
 import { ShellTopBarComponent } from '../components/shell-top-bar/shell-top-bar.component';
 
@@ -15,6 +16,7 @@ import { ShellTopBarComponent } from '../components/shell-top-bar/shell-top-bar.
 export class ShellLayoutComponent {
   private readonly router = inject(Router);
   private readonly theme = inject(ThemeService);
+  protected readonly toast = inject(ToastService);
 
   protected readonly mobileMenuOpen = signal(false);
   protected readonly pageTitle = signal(this.readTitle());

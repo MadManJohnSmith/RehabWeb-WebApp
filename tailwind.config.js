@@ -6,11 +6,15 @@ module.exports = {
     extend: {
       colors: {
         pm: {
-          primary: '#00A781',
-          'primary-hover': '#009670',
+          /** Esmeralda Figma (éxito / marca) */
+          primary: '#00A884',
+          'primary-hover': '#008f72',
+          'primary-soft': '#E8F7F4',
+          'primary-soft-dark': '#0D3328',
           ink: '#1A2B3E',
           'ink-on-dark': '#E2EAF4',
-          canvas: '#F8FAFC',
+          /** Fondo app Figma */
+          canvas: '#F8F9FA',
           'canvas-dark': '#0F1923',
           surface: '#FFFFFF',
           'surface-dark': '#1A2535',
@@ -20,19 +24,25 @@ module.exports = {
           'subtle-dark': '#607080',
           border: '#E2E8F0',
           'border-dark': '#2A3A4E',
-          info: '#4D94FF',
-          warning: '#FFB84D',
-          danger: '#FF5C5C',
-          'danger-dark': '#FF8080',
+          /** Azul suave información */
+          info: '#5B8DEF',
+          'info-soft': '#E8F1FF',
+          warning: '#EAB308',
+          'warning-soft': '#FEF9C3',
+          /** Coral Figma (alertas / regresión) */
+          danger: '#FF5252',
+          'danger-dark': '#FF7A7A',
           'danger-bg': '#FFF0F0',
           'danger-bg-dark': '#3D1010',
+          coral: '#FF5252',
         },
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
-        card: '12px',
+        /** Tarjetas Figma 16px */
+        card: '16px',
         cta: '16px',
         control: '8px',
       },

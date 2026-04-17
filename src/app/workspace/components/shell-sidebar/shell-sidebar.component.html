@@ -1,39 +1,174 @@
 <aside
-  class="flex h-full w-60 flex-col border-r border-pm-border bg-pm-surface dark:border-pm-border-dark dark:bg-pm-surface-dark"
+  class="flex h-full w-full min-h-dvh flex-1 flex-col border-r border-pm-border bg-pm-surface transition-[width] duration-200 ease-out dark:border-pm-border-dark dark:bg-pm-surface-dark max-md:flex-none max-md:h-full"
+  [class.w-60]="!collapsed()"
+  [class.w-[4.5rem]]="collapsed()"
 >
-  <div class="flex h-14 items-center gap-2 border-b border-pm-border px-4 dark:border-pm-border-dark">
-    <span
-      class="flex h-8 w-8 items-center justify-center rounded-control bg-pm-primary text-xs font-bold text-white"
-      >PM</span
-    >
-    <div class="flex flex-col leading-tight">
-      <span class="text-sm font-bold text-pm-ink dark:text-pm-ink-on-dark">PhysioMetrics</span>
-      <span class="text-xs font-normal text-pm-muted dark:text-pm-muted-dark">Área de trabajo</span>
+  <!-- Marca + colapsar: aire superior como referencia Figma -->
+  <div
+    class="flex shrink-0 items-center gap-2 border-b border-pm-border px-3 pb-3 pt-4 dark:border-pm-border-dark"
+    [class.flex-col]="collapsed()"
+    [class.items-center]="collapsed()"
+    [class.justify-center]="collapsed()"
+    [class.gap-2]="collapsed()"
+    [class.py-4]="collapsed()"
+    [class.justify-between]="!collapsed()"
+    [class.min-h-[3.5rem]]="!collapsed()"
+  >
+    <div class="flex min-w-0 items-center gap-2.5" [class.justify-center]="collapsed()">
+      <div
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-pm-primary text-white"
+        aria-hidden="true"
+      >
+        <svg
+          class="h-[1.125rem] w-[1.125rem]"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+        </svg>
+      </div>
+      @if (!collapsed()) {
+        <span
+          class="truncate font-sans text-sm font-bold leading-none tracking-tight text-pm-ink dark:text-pm-ink-on-dark"
+          >PhysioMetrics</span
+        >
+      }
     </div>
+    @if (!collapsed()) {
+      <button
+        type="button"
+        (click)="toggleCollapsed()"
+        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-pm-border text-pm-muted transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-muted-dark dark:hover:text-pm-primary"
+        aria-label="Contraer barra lateral"
+      >
+        <app-ui-icon name="chevron-left" [size]="16" />
+      </button>
+    }
+    @if (collapsed()) {
+      <button
+        type="button"
+        (click)="toggleCollapsed()"
+        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-pm-border text-pm-muted transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-muted-dark dark:hover:text-pm-primary"
+        aria-label="Expandir barra lateral"
+      >
+        <app-ui-icon name="chevron-right" [size]="16" />
+      </button>
+    }
   </div>
 
-  <nav class="flex flex-1 flex-col gap-1 p-3" aria-label="Navegación principal">
-    @for (item of items; track item.path) {
+  <nav
+    class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-2 pb-2 pt-2"
+    aria-label="Navegación principal"
+  >
+    <p
+      class="mb-2 px-2 font-sans text-xs font-medium uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark"
+      [class.sr-only]="collapsed()"
+    >
+      Menú principal
+    </p>
+
+    <div class="flex flex-col gap-1">
+      @for (item of mainMenuItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="pm-nav-active bg-pm-primary-soft font-medium text-pm-primary dark:bg-pm-primary-soft-dark dark:text-pm-primary"
+          [routerLinkActiveOptions]="
+            item.linkActiveExact === false
+              ? { paths: 'subset', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }
+              : { exact: true }
+          "
+          (click)="onNavigate()"
+          [attr.title]="collapsed() ? item.label : null"
+          class="group flex min-h-11 items-center gap-3 rounded-control px-3 py-2.5 font-sans text-sm text-pm-ink transition-colors hover:bg-pm-canvas dark:text-pm-ink-on-dark dark:hover:bg-pm-canvas-dark"
+          [class.justify-center]="collapsed()"
+          [class.px-2]="collapsed()"
+        >
+          <app-ui-icon
+            [name]="item.icon"
+            [size]="20"
+            class="shrink-0 text-pm-ink opacity-90 group-[.pm-nav-active]:text-pm-primary group-[.pm-nav-active]:opacity-100 dark:text-pm-ink-on-dark"
+          />
+          @if (!collapsed()) {
+            <span class="truncate leading-snug">{{ item.label }}</span>
+          }
+        </a>
+      }
+    </div>
+
+    <p
+      class="mb-2 mt-6 px-2 font-sans text-xs font-medium uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark"
+      [class.sr-only]="collapsed()"
+    >
+      Ajustes
+    </p>
+
+    <div class="flex flex-col gap-1">
       <a
-        [routerLink]="item.path"
-        routerLinkActive="bg-[#E6F6F2] text-pm-primary dark:bg-[#0D3328] dark:text-pm-primary"
-        [routerLinkActiveOptions]="{ exact: true }"
+        routerLink="/app/configuracion"
         (click)="onNavigate()"
-        class="flex items-center gap-3 rounded-control px-3 py-2.5 text-sm font-normal text-pm-ink transition hover:bg-pm-canvas dark:text-pm-ink-on-dark dark:hover:bg-pm-canvas-dark"
+        routerLinkActive="pm-nav-active bg-pm-primary-soft font-medium text-pm-primary dark:bg-pm-primary-soft-dark dark:text-pm-primary"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [attr.title]="collapsed() ? 'Configuraciones' : null"
+        class="group flex min-h-11 items-center gap-3 rounded-control px-3 py-2.5 font-sans text-sm text-pm-ink transition-colors hover:bg-pm-canvas dark:text-pm-ink-on-dark dark:hover:bg-pm-canvas-dark"
+        [class.justify-center]="collapsed()"
+        [class.px-2]="collapsed()"
       >
-        <app-ui-icon [name]="item.icon" [size]="18" />
-        {{ item.label }}
+        <app-ui-icon
+          name="settings"
+          [size]="20"
+          class="shrink-0 text-pm-ink opacity-90 group-[.pm-nav-active]:text-pm-primary group-[.pm-nav-active]:opacity-100 dark:text-pm-ink-on-dark"
+        />
+        @if (!collapsed()) {
+          <span class="truncate">Configuraciones</span>
+        }
       </a>
-    }
+      <a
+        routerLink="/landing"
+        (click)="onNavigate()"
+        [attr.title]="collapsed() ? 'Cerrar sesión' : null"
+        class="flex min-h-11 items-center gap-3 rounded-control px-3 py-2.5 font-sans text-sm text-pm-ink transition-colors hover:bg-pm-canvas dark:text-pm-ink-on-dark dark:hover:bg-pm-canvas-dark"
+        [class.justify-center]="collapsed()"
+        [class.px-2]="collapsed()"
+      >
+        <app-ui-icon name="log-out" [size]="20" class="shrink-0 text-pm-ink opacity-90 dark:text-pm-ink-on-dark" />
+        @if (!collapsed()) {
+          <span class="truncate">Cerrar sesión</span>
+        }
+      </a>
+    </div>
   </nav>
 
-  <div class="border-t border-pm-border p-3 dark:border-pm-border-dark">
-    <a
-      routerLink="/landing"
-      class="flex items-center gap-3 rounded-control px-3 py-2 text-sm font-normal text-pm-muted hover:text-pm-ink dark:text-pm-muted-dark dark:hover:text-pm-ink-on-dark"
-    >
-      <app-ui-icon name="log-out" [size]="18" />
-      Volver al sitio público
-    </a>
+  <!-- Perfil: pie fijo del sidebar -->
+  <div class="mt-auto shrink-0 border-t border-pm-border bg-pm-surface p-3 dark:border-pm-border-dark dark:bg-pm-surface-dark">
+    @if (!collapsed()) {
+      <div class="flex items-center gap-3 rounded-control px-1 py-1">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pm-primary-soft text-xs font-bold text-pm-primary dark:bg-pm-primary-soft-dark dark:text-pm-primary"
+          aria-hidden="true"
+        >
+          ER
+        </div>
+        <div class="min-w-0 flex-1 leading-tight">
+          <p class="truncate font-sans text-sm font-bold text-pm-ink dark:text-pm-ink-on-dark">Dra. Elena Ramos</p>
+          <p class="truncate font-sans text-xs font-normal text-pm-muted dark:text-pm-muted-dark">
+            Fisioterapeuta Principal
+          </p>
+        </div>
+      </div>
+    } @else {
+      <div class="flex justify-center">
+        <div
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-pm-primary-soft text-[0.625rem] font-bold text-pm-primary dark:bg-pm-primary-soft-dark dark:text-pm-primary"
+          title="Dra. Elena Ramos"
+          aria-hidden="true"
+        >
+          ER
+        </div>
+      </div>
+    }
   </div>
 </aside>

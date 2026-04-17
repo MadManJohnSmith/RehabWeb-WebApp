@@ -1,42 +1,252 @@
-<div class="mx-auto max-w-6xl space-y-6">
-  <div>
+<div class="mx-auto max-w-6xl space-y-6 pb-4">
+  <div class="pt-1">
     <p class="text-xs font-medium uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
-      Resumen operativo
+      Tablero de control
     </p>
-    <h2 class="mt-1 text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">Tablero de control</h2>
-    <p class="mt-1 text-sm font-normal text-pm-muted dark:text-pm-muted-dark">
-      Indicadores agregados (datos simulados, sin backend).
+    <h1 class="mt-1 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Resumen clínico</h1>
+    <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
+      Vista inspirada en las especificaciones de producto (datos simulados hasta conectar con el servidor).
     </p>
   </div>
 
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <app-stat-card label="Pacientes activos" value="128" hint="Cohortes en seguimiento" />
-    <app-stat-card label="Alertas pendientes" value="14" hint="Requieren intervención" />
-    <app-stat-card label="Cumplimiento de ejercicios" value="88%" hint="Ventana móvil 7 días" />
-  </div>
-
+  <!-- Alerta superior inactividad -->
   <section
-    class="rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+    class="rounded-card border border-amber-200/80 bg-pm-warning-soft px-4 py-4 shadow-pm-sm dark:border-amber-800/50 dark:bg-amber-950/30 dark:shadow-pm-sm-dark sm:px-5"
   >
-    <h3 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">
-      Evolución promedio del ROM (rango normalizado)
-    </h3>
-    <p class="mt-1 text-sm font-normal text-pm-muted dark:text-pm-muted-dark">
-      Serie sintética para validación de layout.
-    </p>
-    <div class="mt-6 flex h-48 items-end gap-2 sm:gap-3">
-      @for (pt of romSeries; track pt.label) {
-        <div class="flex flex-1 flex-col items-center gap-2">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div class="flex gap-3">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-100"
+        >
+          <app-ui-icon name="alert-triangle" [size]="20" />
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ inactivityHeadline }}</p>
+          <p class="mt-0.5 text-sm text-pm-muted dark:text-pm-muted-dark">
+            <span class="font-semibold text-amber-900 dark:text-amber-100">{{ inactivityCount }} pacientes</span>
+            con seguimiento prioritario por inactividad.
+          </p>
+        </div>
+      </div>
+      <a
+        routerLink="/app/alertas"
+        class="inline-flex shrink-0 items-center justify-center rounded-control border border-amber-300/80 bg-pm-surface px-4 py-2 text-sm font-medium text-amber-950 shadow-pm-sm hover:border-pm-primary hover:text-pm-primary dark:border-amber-700 dark:bg-pm-surface-dark dark:text-amber-50 dark:hover:text-pm-primary"
+      >
+        Ver todos
+      </a>
+    </div>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+      @for (p of inactivityPatients; track p.name) {
+        <div
+          class="flex items-center gap-3 rounded-control border border-amber-200/60 bg-pm-surface/90 p-3 dark:border-amber-800/40 dark:bg-pm-surface-dark/80"
+        >
           <div
-            class="w-full max-w-[3rem] rounded-t-sm bg-pm-primary/90 dark:bg-pm-primary"
-            [style.height.px]="barHeightPx(pt.value)"
-            [attr.aria-label]="pt.label + ': ' + pt.value"
-          ></div>
-          <span class="text-center text-xs font-normal text-pm-muted dark:text-pm-muted-dark">{{
-            pt.label
-          }}</span>
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-pm-primary-soft text-xs font-bold text-pm-primary dark:bg-pm-primary-soft-dark dark:text-pm-primary"
+          >
+            {{ p.initials }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ p.name }}</p>
+            <p class="truncate text-xs text-pm-muted dark:text-pm-muted-dark">{{ p.condition }}</p>
+          </div>
+          <span
+            class="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 dark:bg-amber-900/50 dark:text-amber-50"
+          >
+            {{ p.days }} días
+          </span>
         </div>
       }
+    </div>
+  </section>
+
+  <!-- Métricas circulares -->
+  <section
+    class="rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+  >
+    <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Indicadores clave</h2>
+    <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
+      Cuatro métricas circulares (demostración) alineadas al tablero original.
+    </p>
+    <div class="mt-6 grid grid-cols-2 gap-6 lg:grid-cols-4">
+      @for (m of ringMetrics; track m.label) {
+        <div class="flex flex-col items-center text-center">
+          <div class="relative h-32 w-32">
+            <svg class="h-full w-full -rotate-90 text-pm-border dark:text-pm-border-dark" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="8" />
+              <circle
+                cx="50"
+                cy="50"
+                r="38"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="8"
+                stroke-linecap="round"
+                class="text-pm-primary"
+                [attr.stroke-dasharray]="ringCirc"
+                [attr.stroke-dashoffset]="ringCirc * (1 - m.frac)"
+              />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center leading-tight">
+              <span class="text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">{{ m.value }}</span>
+            </div>
+          </div>
+          <p class="mt-2 text-xs font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
+            {{ m.label }}
+          </p>
+        </div>
+      }
+    </div>
+  </section>
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <!-- Gráfica principal -->
+    <section
+      class="lg:col-span-2 rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+    >
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Evolución clínica agregada</h2>
+          <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
+            Serie principal con información al pasar el cursor; verde = mejora frente a la meta,
+            coral = regresión puntual.
+          </p>
+        </div>
+      </div>
+      <div class="relative mt-4">
+        <svg
+          class="h-56 w-full text-pm-ink dark:text-pm-ink-on-dark"
+          viewBox="0 0 420 200"
+          preserveAspectRatio="none"
+          (mouseleave)="clearTip()"
+        >
+          <defs>
+            <linearGradient id="dashGrid" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="currentColor" stop-opacity="0.07" />
+              <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="420" height="200" fill="url(#dashGrid)" rx="14" />
+          <polyline
+            [attr.points]="linePointsFor(lineMeta)"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-dasharray="7 5"
+            class="text-pm-info"
+          />
+          <polyline
+            [attr.points]="linePointsFor(lineReal)"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            class="text-pm-primary"
+          />
+          @for (d of chartDots(); track $index) {
+            <circle
+              [attr.cx]="d.cx"
+              [attr.cy]="d.cy"
+              r="5"
+              [class.fill-pm-primary]="!d.regression"
+              [class.fill-pm-coral]="d.regression"
+              stroke="white"
+              stroke-width="1.5"
+              class="cursor-crosshair"
+              (mouseenter)="showPointTip($event, 'Valor observado: ' + d.real + ' · Meta: ' + d.meta)"
+              (mousemove)="showPointTip($event, 'Valor observado: ' + d.real + ' · Meta: ' + d.meta)"
+            />
+          }
+        </svg>
+        @if (chartTooltip(); as tip) {
+          <div
+            class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-control border border-pm-border bg-pm-surface px-2 py-1 text-xs font-medium text-pm-ink shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
+            [style.left.px]="tip.x"
+            [style.top.px]="tip.y"
+          >
+            {{ tip.label }}
+          </div>
+        }
+      </div>
+      <div class="mt-3 flex flex-wrap gap-4 text-xs text-pm-muted dark:text-pm-muted-dark">
+        <span class="inline-flex items-center gap-2">
+          <span class="h-0.5 w-6 border-t-2 border-dashed border-pm-info"></span> Referencia / meta
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="h-0.5 w-6 border-t-2 border-pm-primary"></span> Desempeño observado
+        </span>
+      </div>
+    </section>
+
+    <!-- Paneles laterales -->
+    <aside class="space-y-4">
+      <div
+        class="rounded-card border border-pm-border bg-pm-surface p-4 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+      >
+        <h3 class="text-sm font-bold text-pm-ink dark:text-pm-ink-on-dark">Pacientes por revisar hoy</h3>
+        <ul class="mt-3 space-y-2 text-sm text-pm-muted dark:text-pm-muted-dark">
+          @for (n of reviewToday; track n) {
+            <li class="flex items-center gap-2">
+              <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-pm-primary"></span>
+              <span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">{{ n }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+      <div
+        class="rounded-card border border-pm-border bg-pm-surface p-4 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+      >
+        <h3 class="text-sm font-bold text-pm-ink dark:text-pm-ink-on-dark">Últimos resúmenes de reportes</h3>
+        <ul class="mt-3 space-y-2">
+          @for (r of reportSnippets; track r.title) {
+            <li>
+              <button
+                type="button"
+                (click)="openReportSnippet(r.title)"
+                class="w-full rounded-control border border-transparent px-2 py-2 text-left text-sm transition hover:border-pm-border hover:bg-pm-canvas dark:hover:border-pm-border-dark dark:hover:bg-pm-canvas-dark"
+              >
+                <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ r.title }}</span>
+                <span class="mt-0.5 block text-xs text-pm-muted dark:text-pm-muted-dark">{{ r.date }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Historial reciente (tabla corta) -->
+  <section
+    class="rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+  >
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Historial de sesiones recientes</h2>
+        <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
+          Últimas 5 intervenciones registradas (datos de demostración).
+        </p>
+      </div>
+      <a routerLink="/app/historial-sesiones" class="text-sm font-medium text-pm-primary hover:underline">
+        Ver historial completo
+      </a>
+    </div>
+    <div class="mt-4 overflow-x-auto">
+      <table class="min-w-full border-collapse text-left text-sm">
+        <thead class="text-xs font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
+          <tr>
+            <th class="border-b border-pm-border py-2 pr-4 dark:border-pm-border-dark">Fecha</th>
+            <th class="border-b border-pm-border py-2 pr-4 dark:border-pm-border-dark">Ejercicio</th>
+            <th class="border-b border-pm-border py-2 dark:border-pm-border-dark">Puntuación</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-pm-border dark:divide-pm-border-dark">
+          @for (s of recentSessions; track s.date + s.exercise) {
+            <tr class="hover:bg-pm-canvas/60 dark:hover:bg-pm-canvas-dark/40">
+              <td class="py-2.5 pr-4 text-pm-muted dark:text-pm-muted-dark">{{ s.date }}</td>
+              <td class="py-2.5 pr-4 font-medium text-pm-ink dark:text-pm-ink-on-dark">{{ s.exercise }}</td>
+              <td class="py-2.5 font-semibold text-pm-primary">{{ s.score }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
   </section>
 </div>

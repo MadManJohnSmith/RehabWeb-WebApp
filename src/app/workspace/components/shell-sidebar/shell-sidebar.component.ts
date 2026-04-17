@@ -1,24 +1,48 @@
-import { Component, output } from '@angular/core';
+import { Component, output, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { UiIconComponent, UiIconName } from '../ui-icon/ui-icon.component';
 
-type NavItem = { path: string; label: string; icon: UiIconName };
+export type ShellNavItem = {
+  path: string;
+  label: string;
+  icon: UiIconName;
+  /** `false` = resalta también en rutas hijas (p. ej. `/app/pacientes/:id`). */
+  linkActiveExact?: boolean;
+};
 
 @Component({
   selector: 'app-shell-sidebar',
   standalone: true,
   imports: [RouterLink, RouterLinkActive, UiIconComponent],
   templateUrl: './shell-sidebar.component.html',
+  styles: `
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 100%;
+      align-self: stretch;
+    }
+  `,
 })
 export class ShellSidebarComponent {
   readonly closeMobile = output<void>();
 
-  readonly items: NavItem[] = [
-    { path: '/app/dashboard', label: 'Tablero', icon: 'layout-dashboard' },
-    { path: '/app/alertas', label: 'Alertas de inactividad', icon: 'bell' },
-    { path: '/app/reportes', label: 'Generación de reportes', icon: 'file-text' },
-    { path: '/app/monitoreo', label: 'Monitoreo remoto', icon: 'monitor-play' },
+  /** Navegación principal alineada al brief de producto (Figma). */
+  readonly mainMenuItems: ShellNavItem[] = [
+    { path: '/app/dashboard', label: 'Tablero de control', icon: 'activity', linkActiveExact: true },
+    { path: '/app/pacientes', label: 'Pacientes', icon: 'users', linkActiveExact: false },
+    { path: '/app/comparativa', label: 'Comparativa de desempeño', icon: 'chart-column', linkActiveExact: true },
+    { path: '/app/alertas', label: 'Alertas de inactividad', icon: 'bell', linkActiveExact: true },
+    { path: '/app/historial-sesiones', label: 'Historial de sesiones', icon: 'history', linkActiveExact: true },
+    { path: '/app/reportes', label: 'Generación de reportes', icon: 'file-text', linkActiveExact: true },
   ];
+
+  protected readonly collapsed = signal(false);
+
+  toggleCollapsed(): void {
+    this.collapsed.update((v) => !v);
+  }
 
   onNavigate(): void {
     this.closeMobile.emit();

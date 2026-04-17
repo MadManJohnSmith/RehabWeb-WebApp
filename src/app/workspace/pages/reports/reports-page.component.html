@@ -1,0 +1,73 @@
+<div class="mx-auto max-w-6xl space-y-6">
+  <div>
+    <h2 class="text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">Generación de reportes</h2>
+    <p class="mt-1 text-sm font-normal text-pm-muted dark:text-pm-muted-dark">
+      Filtros de cohorte y exportación clínica (solo interfaz).
+    </p>
+  </div>
+
+  <section
+    class="rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+  >
+    <div class="grid gap-4 md:grid-cols-3">
+      <div>
+        <label class="mb-1 block text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark" for="rep-pac"
+          >Paciente</label
+        >
+        <input
+          id="rep-pac"
+          name="pacienteId"
+          [(ngModel)]="pacienteId"
+          class="w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-2 text-sm outline-none ring-pm-primary focus:ring-2 dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+        />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark" for="rep-desde"
+          >Desde</label
+        >
+        <input
+          id="rep-desde"
+          name="desde"
+          type="date"
+          [(ngModel)]="desde"
+          class="w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-2 text-sm outline-none ring-pm-primary focus:ring-2 dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+        />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark" for="rep-hasta"
+          >Hasta</label
+        >
+        <input
+          id="rep-hasta"
+          name="hasta"
+          type="date"
+          [(ngModel)]="hasta"
+          class="w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-2 text-sm outline-none ring-pm-primary focus:ring-2 dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+        />
+      </div>
+    </div>
+
+    <div class="mt-6 flex flex-wrap gap-3">
+      <button
+        type="button"
+        (click)="export('excel')"
+        class="inline-flex items-center gap-2 rounded-control bg-pm-primary px-4 py-2 text-sm font-medium text-white hover:bg-pm-primary-hover"
+      >
+        <app-ui-icon name="file-spreadsheet" [size]="18" svgClass="text-white" />
+        Descargar Excel
+      </button>
+      <button
+        type="button"
+        (click)="export('pdf')"
+        class="inline-flex items-center gap-2 rounded-control border border-pm-border px-4 py-2 text-sm font-medium text-pm-ink hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark"
+      >
+        <app-ui-icon name="download" [size]="18" />
+        Descargar PDF
+      </button>
+    </div>
+
+    @if (estado()) {
+      <p class="mt-4 text-xs font-normal text-pm-muted dark:text-pm-muted-dark">{{ estado() }}</p>
+    }
+  </section>
+</div>

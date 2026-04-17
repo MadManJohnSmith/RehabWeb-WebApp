@@ -1,0 +1,82 @@
+<div class="mx-auto max-w-6xl space-y-6">
+  <div>
+    <h2 class="text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">Alertas de inactividad</h2>
+    <p class="mt-1 text-sm font-normal text-pm-muted dark:text-pm-muted-dark">
+      Pacientes sin actividad registrada en más de 3 días (criterio operativo; datos simulados).
+    </p>
+  </div>
+
+  @if (log().length) {
+    <div
+      class="rounded-card border border-pm-border bg-pm-surface px-4 py-3 text-xs font-normal text-pm-muted dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-muted-dark"
+      role="status"
+    >
+      @for (line of log(); track line) {
+        <div>{{ line }}</div>
+      }
+    </div>
+  }
+
+  <div
+    class="overflow-hidden rounded-card border border-pm-border bg-pm-surface shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+  >
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-pm-border text-left text-sm dark:divide-pm-border-dark">
+        <thead class="bg-pm-canvas text-xs font-medium uppercase text-pm-muted dark:bg-pm-canvas-dark dark:text-pm-muted-dark">
+          <tr>
+            <th class="px-4 py-3">Prioridad</th>
+            <th class="px-4 py-3">Paciente</th>
+            <th class="px-4 py-3">Días sin actividad</th>
+            <th class="px-4 py-3 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-pm-border dark:divide-pm-border-dark">
+          @for (row of filas; track row.id) {
+            <tr>
+              <td class="px-4 py-3">
+                @if (row.prioridad === 'alta') {
+                  <span
+                    class="inline-flex items-center gap-1 rounded-full bg-pm-danger-bg px-2 py-0.5 text-xs font-medium text-pm-danger dark:bg-pm-danger-bg-dark dark:text-pm-danger-dark"
+                  >
+                    <span class="h-2 w-2 rounded-full bg-pm-danger dark:bg-pm-danger-dark" aria-hidden="true"></span>
+                    Alta
+                  </span>
+                } @else {
+                  <span
+                    class="inline-flex rounded-full bg-pm-canvas px-2 py-0.5 text-xs font-medium text-pm-muted dark:bg-pm-canvas-dark dark:text-pm-muted-dark"
+                    >Media</span
+                  >
+                }
+              </td>
+              <td class="px-4 py-3 font-normal text-pm-ink dark:text-pm-ink-on-dark">
+                {{ row.paciente }}
+                <span class="mt-0.5 block text-xs text-pm-muted dark:text-pm-muted-dark">{{ row.id }}</span>
+              </td>
+              <td class="px-4 py-3 font-mono text-sm text-pm-ink dark:text-pm-ink-on-dark">{{ row.dias }}</td>
+              <td class="px-4 py-3 text-right">
+                <div class="flex flex-wrap justify-end gap-2">
+                  <button
+                    type="button"
+                    (click)="motivacional(row.id)"
+                    class="inline-flex items-center gap-1.5 rounded-control border border-pm-border px-3 py-1.5 text-xs font-medium text-pm-ink transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark"
+                  >
+                    <app-ui-icon name="send" [size]="14" />
+                    Enviar mensaje
+                  </button>
+                  <button
+                    type="button"
+                    (click)="resolver(row.id)"
+                    class="inline-flex items-center gap-1.5 rounded-control bg-pm-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-pm-primary-hover"
+                  >
+                    <app-ui-icon name="circle-check" [size]="14" />
+                    Marcar resuelta
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+<div class="flex min-h-dvh bg-pm-canvas dark:bg-pm-canvas-dark">
+  @if (mobileMenuOpen()) {
+    <button
+      type="button"
+      class="fixed inset-0 z-30 bg-pm-ink/40 md:hidden"
+      (click)="backdropClick()"
+      aria-label="Cerrar menú"
+    ></button>
+  }
+
+  <app-shell-sidebar
+    class="z-40 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:h-dvh max-md:shadow-pm-md max-md:transition-transform md:static md:translate-x-0 dark:max-md:shadow-pm-md-dark"
+    [class.max-md:-translate-x-full]="!mobileMenuOpen()"
+    [class.max-md:translate-x-0]="mobileMenuOpen()"
+    (closeMobile)="closeMobileMenu()"
+  />
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <app-shell-top-bar [title]="pageTitle()" (menuToggle)="toggleMobileMenu()" />
+    <div class="flex-1 overflow-auto p-4 md:p-6">
+      <router-outlet />
+    </div>
+  </div>
+</div>

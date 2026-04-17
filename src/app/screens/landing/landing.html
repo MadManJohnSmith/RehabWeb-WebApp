@@ -1,0 +1,495 @@
+<div class="flex min-h-dvh flex-col pb-24 sm:pb-0">
+  <!-- Navbar -->
+  <header
+    class="sticky top-0 z-50 border-b border-pm-border bg-pm-surface/95 backdrop-blur-md dark:border-pm-border-dark dark:bg-pm-surface-dark/95"
+  >
+    <nav
+      class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 md:gap-4 md:px-6 lg:px-8"
+      aria-label="Principal"
+    >
+      <div
+        class="flex items-center justify-between gap-4 md:grid md:w-full md:grid-cols-3 md:items-center"
+      >
+        <a href="#" class="group flex items-center gap-2.5 justify-self-start">
+          <span
+            class="flex h-9 w-9 items-center justify-center rounded-card bg-pm-primary text-sm font-bold text-white shadow-pm-sm dark:shadow-pm-sm-dark"
+            aria-hidden="true"
+            >PM</span
+          >
+          <span class="text-lg font-bold tracking-tight text-pm-ink dark:text-pm-ink-on-dark"
+            >PhysioMetrics</span
+          >
+        </a>
+
+        <div class="hidden items-center justify-center gap-6 md:flex">
+          <a
+            href="#inicio"
+            class="text-base font-normal text-pm-ink transition-colors hover:text-pm-primary dark:text-pm-ink-on-dark dark:hover:text-pm-primary"
+            >Inicio</a
+          >
+          <a
+            href="#beneficios"
+            class="text-base font-normal text-pm-ink transition-colors hover:text-pm-primary dark:text-pm-ink-on-dark dark:hover:text-pm-primary"
+            >Beneficios</a
+          >
+          <a
+            href="#planes"
+            class="text-base font-normal text-pm-ink transition-colors hover:text-pm-primary dark:text-pm-ink-on-dark dark:hover:text-pm-primary"
+            >Planes</a
+          >
+          <a
+            href="#contacto"
+            class="text-base font-normal text-pm-ink transition-colors hover:text-pm-primary dark:text-pm-ink-on-dark dark:hover:text-pm-primary"
+            >Contacto</a
+          >
+        </div>
+
+        <div class="flex flex-shrink-0 items-center gap-3 justify-self-end">
+        <button
+          type="button"
+          (click)="toggleTheme()"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-card border border-pm-border text-pm-ink transition hover:border-pm-primary hover:text-pm-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark"
+          [attr.aria-label]="theme.isDark() ? 'Activar modo claro' : 'Activar modo oscuro'"
+        >
+          @if (theme.isDark()) {
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path
+                d="M12 3a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0V4a1 1 0 0 0-1-1zm0 15a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1zm8-5a1 1 0 0 0-1-1h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1zM7 12a1 1 0 0 0-1-1H5a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1zm12.657-5.657a1 1 0 0 0-1.414 0l-.707.707a1 1 0 1 0 1.414 1.414l.707-.707a1 1 0 0 0 0-1.414zM7.464 16.95a1 1 0 0 0-1.414 0l-.707.707a1 1 0 1 0 1.414 1.414l.707-.707a1 1 0 0 0 0-1.414zm-1.414-12.02a1 1 0 0 0 0 1.414l.707.707A1 1 0 1 0 8.171 5.636l-.707-.707a1 1 0 0 0-1.414 0zm12.02 12.02a1 1 0 0 0 0-1.414l-.707-.707a1 1 0 1 0-1.414 1.414l.707.707a1 1 0 0 0 1.414 0zM16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"
+              />
+            </svg>
+          } @else {
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path
+                d="M21.752 15.002A9.718 9.718 0 0 1 12.002 22C6.477 22 2 17.523 2 12S6.477 2 12.002 2a9.74 9.74 0 0 1 9.75 9.002c0 .548-.045 1.095-.135 1.636a.999.999 0 0 1-.865.864 9.552 9.552 0 0 1-1.636.135c-.548 0-1.095-.045-1.636-.135a1 1 0 0 1-.864-.865 9.552 9.552 0 0 1-.135-1.636c0-.548.045-1.095.135-1.636a1 1 0 0 1 .865-.864A9.718 9.718 0 0 1 21.752 15z"
+              />
+            </svg>
+          }
+        </button>
+        <a
+          routerLink="/login"
+          class="hidden rounded-cta bg-pm-primary px-5 py-2.5 text-center text-base font-medium text-white shadow-pm-sm transition hover:bg-pm-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pm-primary focus-visible:ring-offset-2 dark:shadow-pm-sm-dark dark:focus-visible:ring-offset-pm-canvas-dark sm:inline-flex"
+          >Acceso a Plataforma</a
+        >
+        </div>
+      </div>
+
+      <div
+        class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-pm-border pt-3 md:hidden dark:border-pm-border-dark"
+      >
+        <a href="#inicio" class="text-sm font-normal text-pm-ink dark:text-pm-ink-on-dark">Inicio</a>
+        <a href="#beneficios" class="text-sm font-normal text-pm-ink dark:text-pm-ink-on-dark"
+          >Beneficios</a
+        >
+        <a href="#planes" class="text-sm font-normal text-pm-ink dark:text-pm-ink-on-dark">Planes</a>
+        <a href="#contacto" class="text-sm font-normal text-pm-ink dark:text-pm-ink-on-dark"
+          >Contacto</a
+        >
+      </div>
+    </nav>
+  </header>
+
+  <main id="inicio" class="flex-1">
+    <!-- Hero -->
+    <section
+      class="border-b border-pm-border px-4 py-16 md:px-6 md:py-24 lg:px-8 dark:border-pm-border-dark"
+      aria-labelledby="hero-heading"
+    >
+      <div class="mx-auto grid max-w-7xl gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
+        <div class="flex flex-col gap-6">
+          <p
+            class="text-sm font-medium uppercase tracking-wide text-pm-primary dark:text-pm-primary"
+          >
+            Plataforma adaptativa · México
+          </p>
+          <h1
+            id="hero-heading"
+            class="text-2xl font-bold leading-tight tracking-tight text-pm-ink sm:text-3xl md:text-[2rem] dark:text-pm-ink-on-dark"
+          >
+            Rehabilitación digital adaptativa para pacientes post-derrame cerebral
+          </h1>
+          <p class="max-w-xl text-base font-normal leading-relaxed text-pm-muted dark:text-pm-muted-dark">
+            Una solución integral en México que conecta a pacientes con terapeutas mediante monitoreo
+            remoto, gamificación y adaptación automática de rutinas.
+          </p>
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <a
+              routerLink="/login"
+              class="inline-flex items-center justify-center rounded-cta bg-pm-primary px-6 py-3 text-base font-medium text-white shadow-pm-md transition hover:bg-pm-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pm-primary focus-visible:ring-offset-2 dark:shadow-pm-md-dark dark:focus-visible:ring-offset-pm-canvas-dark"
+              >Iniciar como terapeuta</a
+            >
+            <a
+              href="#beneficios"
+              class="inline-flex items-center justify-center rounded-cta border border-pm-border bg-pm-surface px-6 py-3 text-base font-medium text-pm-ink transition hover:border-pm-primary hover:text-pm-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-pm-primary dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
+              >Saber más</a
+            >
+          </div>
+        </div>
+        <div class="flex justify-center lg:justify-end">
+          <figure
+            class="w-full max-w-md overflow-hidden rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-md dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-md-dark"
+          >
+            <img
+              src="https://placehold.co/360x520/F8FAFC/1A2B3E/png?text=Vista+m%C3%B3vil%0APhysioMetrics&font=inter"
+              width="360"
+              height="520"
+              class="h-auto w-full rounded-lg object-cover dark:hidden"
+              alt="Placeholder: interfaz móvil de PhysioMetrics para seguimiento de rehabilitación."
+            />
+            <img
+              src="https://placehold.co/360x520/1A2535/E2EAF4/png?text=Vista+m%C3%B3vil%0APhysioMetrics&font=inter"
+              width="360"
+              height="520"
+              class="hidden h-auto w-full rounded-lg object-cover dark:block"
+              alt="Placeholder: interfaz móvil de PhysioMetrics para seguimiento de rehabilitación (modo oscuro)."
+            />
+            <figcaption class="mt-4 text-center text-sm text-pm-muted dark:text-pm-muted-dark">
+              Representación de la aplicación móvil (imagen de demostración).
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Propuesta de valor -->
+    <section
+      id="beneficios"
+      class="border-b border-pm-border px-4 py-16 md:px-6 md:py-20 lg:px-8 dark:border-pm-border-dark"
+      aria-labelledby="value-heading"
+    >
+      <div class="mx-auto max-w-7xl">
+        <h2
+          id="value-heading"
+          class="mb-4 text-2xl font-bold text-pm-ink md:text-xl dark:text-pm-ink-on-dark"
+        >
+          Propuesta de valor
+        </h2>
+        <p class="mb-10 max-w-3xl text-base font-normal text-pm-muted dark:text-pm-muted-dark">
+          PhysioMetrics reduce la fricción logística y económica asociada a la terapia presencial
+          frecuente, manteniendo criterios clínicos objetivos y trazabilidad del progreso.
+        </p>
+        <div class="grid gap-6 md:grid-cols-2">
+          <article
+            class="rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+          >
+            <h3 class="mb-4 text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">
+              Eficiencia económica frente a sesión presencial
+            </h3>
+            <p class="text-base font-normal leading-relaxed text-pm-muted dark:text-pm-muted-dark">
+              En México, una sesión presencial de fisioterapia especializada suele ubicarse en un
+              rango orientativo de
+              <span class="font-medium text-pm-ink dark:text-pm-ink-on-dark"
+                >500 a 800 MXN por sesión</span
+              >. Un modelo digital supervisado permite optimizar recursos al concentrar el contacto
+              clínico en momentos de mayor valor, sin sustituir el juicio profesional del terapeuta.
+            </p>
+          </article>
+          <article
+            class="rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+          >
+            <h3 class="mb-4 text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">
+              Cobertura y continuidad asistencial
+            </h3>
+            <p class="text-base font-normal leading-relaxed text-pm-muted dark:text-pm-muted-dark">
+              Accesibilidad desde cualquier punto del país con conectividad adecuada, con énfasis en
+              continuidad del programa, adherencia y registro estructurado de señales de progreso
+              para decisiones basadas en datos.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Características + visuales -->
+    <section
+      class="border-b border-pm-border px-4 py-16 md:px-6 md:py-20 lg:px-8 dark:border-pm-border-dark"
+      aria-labelledby="features-heading"
+    >
+      <div class="mx-auto max-w-7xl">
+        <h2
+          id="features-heading"
+          class="mb-4 text-2xl font-bold text-pm-ink md:text-xl dark:text-pm-ink-on-dark"
+        >
+          Características clave
+        </h2>
+        <p class="mb-10 max-w-3xl text-base text-pm-muted dark:text-pm-muted-dark">
+          Funcionalidades orientadas a la evidencia operativa y a la coordinación entre actor
+          clínico y paciente.
+        </p>
+
+        <div class="grid gap-6 lg:grid-cols-2">
+          <ul
+            class="flex flex-col gap-4 rounded-card border border-pm-border bg-pm-surface p-6 dark:border-pm-border-dark dark:bg-pm-surface-dark"
+            role="list"
+          >
+            <li class="flex gap-4 text-base font-normal text-pm-muted dark:text-pm-muted-dark">
+              <span
+                class="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-pm-primary/10 text-pm-primary"
+                aria-hidden="true"
+                >1</span
+              >
+              <span
+                ><strong class="font-bold text-pm-ink dark:text-pm-ink-on-dark"
+                  >Asignación personalizada de rutinas</strong
+                >
+                — parámetros ajustables según capacidad funcional y objetivos terapéuticos.</span
+              >
+            </li>
+            <li class="flex gap-4 text-base font-normal text-pm-muted dark:text-pm-muted-dark">
+              <span
+                class="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-pm-primary/10 text-pm-primary"
+                aria-hidden="true"
+                >2</span
+              >
+              <span
+                ><strong class="font-bold text-pm-ink dark:text-pm-ink-on-dark"
+                  >Monitoreo remoto continuo</strong
+                >
+                — seguimiento longitudinal de sesiones y métricas de adherencia.</span
+              >
+            </li>
+            <li class="flex gap-4 text-base font-normal text-pm-muted dark:text-pm-muted-dark">
+              <span
+                class="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-pm-primary/10 text-pm-primary"
+                aria-hidden="true"
+                >3</span
+              >
+              <span
+                ><strong class="font-bold text-pm-ink dark:text-pm-ink-on-dark">Gamificación</strong>
+                — sistema de puntos y retroalimentación positiva para reforzar conductas
+                terapéuticas.</span
+              >
+            </li>
+            <li class="flex gap-4 text-base font-normal text-pm-muted dark:text-pm-muted-dark">
+              <span
+                class="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-pm-primary/10 text-pm-primary"
+                aria-hidden="true"
+                >4</span
+              >
+              <span
+                ><strong class="font-bold text-pm-ink dark:text-pm-ink-on-dark"
+                  >Comunicación segura</strong
+                >
+                — canal estructurado entre paciente y terapeuta, con foco en privacidad y
+                continuidad.</span
+              >
+            </li>
+          </ul>
+
+          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <figure
+              class="overflow-hidden rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+            >
+              <img
+                src="https://placehold.co/480x280/FFFFFF/1A2B3E/png?text=Dashboard+terapeuta%0AROM+%C2%B7+Recuperaci%C3%B3n&font=inter"
+                width="480"
+                height="280"
+                class="h-auto w-full rounded-lg object-cover dark:hidden"
+                alt="Placeholder: panel del terapeuta con indicadores clínicos."
+              />
+              <img
+                src="https://placehold.co/480x280/1A2535/E2EAF4/png?text=Dashboard+terapeuta&font=inter"
+                width="480"
+                height="280"
+                class="hidden h-auto w-full rounded-lg object-cover dark:block"
+                alt="Placeholder: panel del terapeuta con indicadores clínicos (modo oscuro)."
+              />
+              <figcaption class="mt-4 text-sm text-pm-muted dark:text-pm-muted-dark">
+                Dashboard del terapeuta (demostración).
+              </figcaption>
+            </figure>
+            <figure
+              class="overflow-hidden rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+            >
+              <img
+                src="https://placehold.co/480x280/F8FAFC/00A781/png?text=ROM+%2B+Score+de+recuperaci%C3%B3n&font=inter"
+                width="480"
+                height="280"
+                class="h-auto w-full rounded-lg object-cover dark:hidden"
+                alt="Placeholder: gráficas de rango de movimiento y score de recuperación."
+              />
+              <img
+                src="https://placehold.co/480x280/0F1923/33C9A0/png?text=ROM+%2B+Score&font=inter"
+                width="480"
+                height="280"
+                class="hidden h-auto w-full rounded-lg object-cover dark:block"
+                alt="Placeholder: gráficas de ROM y score (modo oscuro)."
+              />
+              <figcaption class="mt-4 text-sm text-pm-muted dark:text-pm-muted-dark">
+                Visualización de progreso: ROM y score de recuperación (demostración).
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actores -->
+    <section
+      id="planes"
+      class="border-b border-pm-border px-4 py-16 md:px-6 md:py-20 lg:px-8 dark:border-pm-border-dark"
+      aria-labelledby="actors-heading"
+    >
+      <div class="mx-auto max-w-7xl">
+        <h2
+          id="actors-heading"
+          class="mb-4 text-2xl font-bold text-pm-ink md:text-xl dark:text-pm-ink-on-dark"
+        >
+          Ecosistema de actores
+        </h2>
+        <p class="mb-10 max-w-3xl text-base text-pm-muted dark:text-pm-muted-dark">
+          La plataforma delimita perfiles y permisos para alinear responsabilidades clínicas,
+          adherencia del paciente y apoyo domiciliario.
+        </p>
+        <div class="grid gap-6 md:grid-cols-3">
+          <article
+            class="flex flex-col rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+          >
+            <h3 class="mb-4 text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">Pacientes</h3>
+            <ul class="flex flex-col gap-4 text-base font-normal text-pm-muted dark:text-pm-muted-dark">
+              <li>Rutinas guiadas y retroalimentación inmediata.</li>
+              <li>Registro de sesiones y adherencia al plan.</li>
+              <li>Acceso a material educativo y objetivos semanales.</li>
+            </ul>
+          </article>
+          <article
+            class="flex flex-col rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+          >
+            <h3 class="mb-4 text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">Terapeutas</h3>
+            <ul class="flex flex-col gap-4 text-base font-normal text-pm-muted dark:text-pm-muted-dark">
+              <li>Panel de cohorte con alertas y priorización.</li>
+              <li>Ajuste de parámetros de ejercicio y progresión.</li>
+              <li>Reportes exportables para historia clínica (cuando aplique).</li>
+            </ul>
+          </article>
+          <article
+            class="flex flex-col rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+          >
+            <h3 class="mb-4 text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">
+              Familiares / cuidadores
+            </h3>
+            <ul class="flex flex-col gap-4 text-base font-normal text-pm-muted dark:text-pm-muted-dark">
+              <li>Vista de avance agregado (sin datos clínicos sensibles innecesarios).</li>
+              <li>Recordatorios y apoyo a la adherencia en domicilio.</li>
+              <li>Coordinación con el equipo terapéutico según políticas institucionales.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contacto breve -->
+    <section
+      id="contacto"
+      class="px-4 py-16 md:px-6 md:py-20 lg:px-8"
+      aria-labelledby="contact-heading"
+    >
+      <div
+        class="mx-auto max-w-7xl rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-md md:p-8 dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-md-dark"
+      >
+        <h2
+          id="contact-heading"
+          class="mb-2 text-2xl font-bold text-pm-ink md:text-xl dark:text-pm-ink-on-dark"
+        >
+          Contacto institucional
+        </h2>
+        <p class="mb-6 max-w-2xl text-base text-pm-muted dark:text-pm-muted-dark">
+          Para evaluación piloto, integración con su unidad de rehabilitación o soporte técnico,
+          utilice los canales oficiales (datos de ejemplo — sustituir en producción).
+        </p>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <a
+            href="mailto:contacto@physiometrics.mx"
+            class="inline-flex text-base font-medium text-pm-primary hover:underline"
+            >contacto&#64;physiometrics.mx</a
+          >
+          <span class="hidden text-pm-border sm:inline dark:text-pm-border-dark" aria-hidden="true"
+            >|</span
+          >
+          <span class="text-base text-pm-muted dark:text-pm-muted-dark">Tel. +52 (55) 0000-0000</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer
+    class="border-t border-pm-border bg-pm-surface px-4 py-10 md:px-6 lg:px-8 dark:border-pm-border-dark dark:bg-pm-surface-dark"
+  >
+    <div class="mx-auto flex max-w-7xl flex-col gap-8 md:flex-row md:justify-between">
+      <div class="flex flex-col gap-3">
+        <span class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">PhysioMetrics</span>
+        <p class="max-w-sm text-sm text-pm-muted dark:text-pm-muted-dark">
+          Plataforma adaptativa de rehabilitación digital. Uso clínico sujeto a normativa local y
+          protocolos institucionales.
+        </p>
+      </div>
+      <div class="flex flex-col gap-4 sm:flex-row sm:gap-12">
+        <div>
+          <h3 class="mb-3 text-sm font-bold text-pm-ink dark:text-pm-ink-on-dark">Legal</h3>
+          <ul class="flex flex-col gap-2 text-sm">
+            <li>
+              <a
+                href="#"
+                class="text-pm-muted underline-offset-4 hover:text-pm-primary hover:underline dark:text-pm-muted-dark"
+                >Aviso de privacidad</a
+              >
+            </li>
+            <li>
+              <a
+                href="#"
+                class="text-pm-muted underline-offset-4 hover:text-pm-primary hover:underline dark:text-pm-muted-dark"
+                >Términos de uso</a
+              >
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="mb-3 text-sm font-bold text-pm-ink dark:text-pm-ink-on-dark">Redes</h3>
+          <ul class="flex gap-4">
+            <li>
+              <a
+                href="#"
+                class="text-pm-muted hover:text-pm-primary dark:text-pm-muted-dark"
+                aria-label="LinkedIn"
+              >
+                <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM.5 8h4V23h-4V8zm7.5 0h3.84v2.05h.05c.53-1 1.84-2.05 3.79-2.05 4.05 0 4.8 2.67 4.8 6.13V23h-4v-6.65c0-1.59-.03-3.63-2.21-3.63-2.21 0-2.55 1.73-2.55 3.52V23h-4V8z"
+                  />
+                </svg>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="text-pm-muted hover:text-pm-primary dark:text-pm-muted-dark"
+                aria-label="X (Twitter)"
+              >
+                <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                  />
+                </svg>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <p class="mx-auto mt-10 max-w-7xl text-center text-xs text-pm-subtle dark:text-pm-subtle-dark">
+      © {{ currentYear }} PhysioMetrics. Información orientativa; no constituye consejo médico
+      individualizado.
+    </p>
+  </footer>
+
+  <!-- Móvil: barra inferior con CTA -->
+  <div
+    class="fixed bottom-0 left-0 right-0 border-t border-pm-border bg-pm-surface/95 p-3 backdrop-blur-md dark:border-pm-border-dark dark:bg-pm-surface-dark/95 sm:hidden"
+  >
+    <a
+      routerLink="/login"
+      class="flex w-full items-center justify-center rounded-cta bg-pm-primary py-3 text-base font-medium text-white"
+      >Acceso a Plataforma</a
+    >
+  </div>
+</div>

@@ -1,0 +1,42 @@
+<div class="mx-auto max-w-6xl space-y-6">
+  <div>
+    <p class="text-xs font-medium uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
+      Resumen operativo
+    </p>
+    <h2 class="mt-1 text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">Tablero de control</h2>
+    <p class="mt-1 text-sm font-normal text-pm-muted dark:text-pm-muted-dark">
+      Indicadores agregados (datos simulados, sin backend).
+    </p>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <app-stat-card label="Pacientes activos" value="128" hint="Cohortes en seguimiento" />
+    <app-stat-card label="Alertas pendientes" value="14" hint="Requieren intervención" />
+    <app-stat-card label="Cumplimiento de ejercicios" value="88%" hint="Ventana móvil 7 días" />
+  </div>
+
+  <section
+    class="rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+  >
+    <h3 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">
+      Evolución promedio del ROM (rango normalizado)
+    </h3>
+    <p class="mt-1 text-sm font-normal text-pm-muted dark:text-pm-muted-dark">
+      Serie sintética para validación de layout.
+    </p>
+    <div class="mt-6 flex h-48 items-end gap-2 sm:gap-3">
+      @for (pt of romSeries; track pt.label) {
+        <div class="flex flex-1 flex-col items-center gap-2">
+          <div
+            class="w-full max-w-[3rem] rounded-t-sm bg-pm-primary/90 dark:bg-pm-primary"
+            [style.height.px]="barHeightPx(pt.value)"
+            [attr.aria-label]="pt.label + ': ' + pt.value"
+          ></div>
+          <span class="text-center text-xs font-normal text-pm-muted dark:text-pm-muted-dark">{{
+            pt.label
+          }}</span>
+        </div>
+      }
+    </div>
+  </section>
+</div>

@@ -1,0 +1,39 @@
+<aside
+  class="flex h-full w-60 flex-col border-r border-pm-border bg-pm-surface dark:border-pm-border-dark dark:bg-pm-surface-dark"
+>
+  <div class="flex h-14 items-center gap-2 border-b border-pm-border px-4 dark:border-pm-border-dark">
+    <span
+      class="flex h-8 w-8 items-center justify-center rounded-control bg-pm-primary text-xs font-bold text-white"
+      >PM</span
+    >
+    <div class="flex flex-col leading-tight">
+      <span class="text-sm font-bold text-pm-ink dark:text-pm-ink-on-dark">PhysioMetrics</span>
+      <span class="text-xs font-normal text-pm-muted dark:text-pm-muted-dark">Área de trabajo</span>
+    </div>
+  </div>
+
+  <nav class="flex flex-1 flex-col gap-1 p-3" aria-label="Navegación principal">
+    @for (item of items; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="bg-[#E6F6F2] text-pm-primary dark:bg-[#0D3328] dark:text-pm-primary"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="onNavigate()"
+        class="flex items-center gap-3 rounded-control px-3 py-2.5 text-sm font-normal text-pm-ink transition hover:bg-pm-canvas dark:text-pm-ink-on-dark dark:hover:bg-pm-canvas-dark"
+      >
+        <app-ui-icon [name]="item.icon" [size]="18" />
+        {{ item.label }}
+      </a>
+    }
+  </nav>
+
+  <div class="border-t border-pm-border p-3 dark:border-pm-border-dark">
+    <a
+      routerLink="/landing"
+      class="flex items-center gap-3 rounded-control px-3 py-2 text-sm font-normal text-pm-muted hover:text-pm-ink dark:text-pm-muted-dark dark:hover:text-pm-ink-on-dark"
+    >
+      <app-ui-icon name="log-out" [size]="18" />
+      Volver al sitio público
+    </a>
+  </div>
+</aside>

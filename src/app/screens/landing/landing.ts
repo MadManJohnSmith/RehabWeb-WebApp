@@ -1,33 +1,22 @@
-import { Component } from '@angular/core';
+import { afterNextRender, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { ThemeService } from '../../core/theme.service';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  template: `
-    <main class="landing">
-      <h1>RehabWeb</h1>
-      <p>Frontend y backend en funcionamiento.</p>
-    </main>
-  `,
-  styles: [
-    `
-      .landing {
-        min-height: 100dvh;
-        display: grid;
-        place-content: center;
-        text-align: center;
-        gap: 0.75rem;
-      }
-
-      h1 {
-        margin: 0;
-      }
-
-      p {
-        margin: 0;
-        color: #4b5563;
-      }
-    `,
-  ],
+  imports: [RouterLink],
+  templateUrl: './landing.html',
 })
-export class LandingComponent {}
+export class LandingComponent {
+  protected readonly theme = inject(ThemeService);
+  protected readonly currentYear = new Date().getFullYear();
+
+  constructor() {
+    afterNextRender(() => this.theme.initFromStorage());
+  }
+
+  toggleTheme(): void {
+    this.theme.toggle();
+  }
+}

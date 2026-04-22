@@ -1,0 +1,202 @@
+<div class="mx-auto w-full max-w-[min(100%,80rem)] space-y-8 pb-4">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
+        Comparativa de desempeño
+      </p>
+      <h1 class="mt-1 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Meta inicial vs desempeño real</h1>
+      <p class="mt-1 max-w-3xl text-sm text-pm-muted dark:text-pm-muted-dark">
+        Vista individual por paciente y vista grupal con varias curvas de <span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">recovery score</span> semanal (serie «real» de la demo). Datos mock compartidos con el perfil de paciente.
+      </p>
+    </div>
+    <a routerLink="/app/pacientes" class="text-sm font-medium text-pm-primary hover:underline">Directorio de pacientes</a>
+  </div>
+
+  <!-- Fórmula de progreso (HU-04 AC-01 — texto hasta incorporar figura oficial) -->
+  <section
+    class="rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+  >
+    <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Fórmula de progreso (referencia)</h2>
+    <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
+      Alineación al criterio de la HU: superposición de meta y real en gráficas; el progreso relativo se documenta aquí
+      en texto hasta disponer de la imagen oficial del expediente de producto.
+    </p>
+    <div
+      class="mt-4 rounded-control border border-pm-border bg-pm-canvas/90 p-4 font-mono text-sm leading-relaxed text-pm-ink dark:border-pm-border-dark dark:bg-pm-canvas-dark/80 dark:text-pm-ink-on-dark"
+    >
+      <p class="text-xs font-sans font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
+        Progreso relativo (%)
+      </p>
+      <p class="mt-2">P = ((R − M₀) / (M* − M₀)) × 100</p>
+      <ul class="mt-3 list-inside list-disc space-y-1 font-sans text-xs text-pm-muted dark:text-pm-muted-dark">
+        <li><span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">R</span> — desempeño real en el punto evaluado.</li>
+        <li><span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">M₀</span> — meta inicial (línea de referencia al inicio del plan).</li>
+        <li><span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">M*</span> — meta objetivo al alta (tope del plan en la misma escala 0–100 de la demo).</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Vista individual -->
+  <section
+    class="rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+  >
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Vista individual</h2>
+        <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
+          Dos series superpuestas con leyenda y tooltips en los puntos (misma lectura que el perfil del paciente).
+        </p>
+      </div>
+      <div class="w-full max-w-xs">
+        <label class="mb-1 block text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Paciente</label>
+        <select
+          class="w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-2.5 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+          [ngModel]="individualId()"
+          (ngModelChange)="individualId.set($event)"
+        >
+          @for (id of patientIds; track id) {
+            <option [value]="id">{{ mock[id].name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <p class="mt-3 text-xs text-pm-muted dark:text-pm-muted-dark">
+      {{ individualPatient().condition }} ·
+      <a [routerLink]="['/app/pacientes', individualPatient().id]" class="font-medium text-pm-primary hover:underline"
+        >Abrir ficha completa</a>
+    </p>
+
+    <div class="relative mt-4">
+      <svg
+        class="h-56 w-full text-pm-ink dark:text-pm-ink-on-dark"
+        viewBox="0 0 360 200"
+        preserveAspectRatio="xMidYMid meet"
+        (mouseleave)="clearTip()"
+      >
+        <defs>
+          <linearGradient id="cmpGridInd" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="currentColor" stop-opacity="0.06" />
+            <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="360" height="200" fill="url(#cmpGridInd)" rx="12" />
+        <polyline
+          [attr.points]="individualMetaPoints()"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-dasharray="6 4"
+          class="text-pm-info"
+        />
+        <polyline
+          [attr.points]="individualRealPoints()"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          class="text-pm-primary"
+        />
+        @for (d of individualDots(); track $index) {
+          <circle
+            [attr.cx]="d.cx"
+            [attr.cy]="d.cy"
+            r="5"
+            [class.fill-pm-primary]="!d.regression"
+            [class.fill-pm-coral]="d.regression"
+            stroke="white"
+            stroke-width="1.5"
+            class="cursor-crosshair dark:stroke-pm-surface-dark"
+            (mouseenter)="showTip($event, 'Observado: ' + d.real + ' · Meta: ' + d.meta)"
+            (mousemove)="showTip($event, 'Observado: ' + d.real + ' · Meta: ' + d.meta)"
+          />
+        }
+      </svg>
+      @if (chartTooltip(); as tip) {
+        <div
+          class="pointer-events-none absolute z-10 max-w-[16rem] -translate-x-1/2 -translate-y-full rounded-control border border-pm-border bg-pm-surface px-2 py-1 text-xs font-medium text-pm-ink shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
+          [style.left.px]="tip.x"
+          [style.top.px]="tip.y"
+        >
+          {{ tip.text }}
+        </div>
+      }
+    </div>
+    <div class="mt-3 flex flex-wrap gap-4 text-xs text-pm-muted dark:text-pm-muted-dark">
+      <span class="inline-flex items-center gap-2">
+        <span class="h-0.5 w-6 border-t-2 border-dashed border-pm-info"></span> Meta inicial
+      </span>
+      <span class="inline-flex items-center gap-2">
+        <span class="h-0.5 w-6 border-t-2 border-pm-primary"></span> Desempeño real
+      </span>
+      <span class="inline-flex items-center gap-1">
+        <span class="h-2 w-2 rounded-full bg-pm-primary"></span> Mejora vs meta en el punto
+      </span>
+      <span class="inline-flex items-center gap-1">
+        <span class="h-2 w-2 rounded-full bg-pm-coral"></span> Regresión vs meta
+      </span>
+    </div>
+  </section>
+
+  <!-- Vista grupal -->
+  <section
+    class="rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+  >
+    <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Vista grupal (recovery score)</h2>
+    <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
+      Selecciona uno o más pacientes; cada línea continua es la serie de <strong class="text-pm-ink dark:text-pm-ink-on-dark">desempeño real</strong> semanal (proxy del recovery score en esta demo). Escala común para comparar en un solo gráfico.
+    </p>
+
+    <fieldset class="mt-4 flex flex-wrap gap-3 border-0 p-0">
+      <legend class="sr-only">Pacientes en comparativa grupal</legend>
+      @for (id of patientIds; track id) {
+        <label
+          class="inline-flex cursor-pointer items-center gap-2 rounded-control border border-pm-border bg-pm-canvas/80 px-3 py-2 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark/60"
+        >
+          <input
+            type="checkbox"
+            class="h-4 w-4 rounded border-pm-border text-pm-primary focus:ring-pm-primary"
+            [checked]="isGroupChecked(id)"
+            (change)="toggleGroup(id, $any($event.target).checked)"
+          />
+          <span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">{{ mock[id].name }}</span>
+        </label>
+      }
+    </fieldset>
+
+    <div class="relative mt-6">
+      <svg
+        class="h-64 w-full text-pm-ink dark:text-pm-ink-on-dark"
+        viewBox="0 0 420 220"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <linearGradient id="cmpGridGrp" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="currentColor" stop-opacity="0.06" />
+            <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="420" height="220" fill="url(#cmpGridGrp)" rx="12" />
+        @for (pid of groupOrderedIds(); track pid; let idx = $index) {
+          <polyline
+            [attr.points]="groupPolylinePoints(pid)"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            [class]="strokeClassAt(idx)"
+          />
+        }
+      </svg>
+    </div>
+
+    <div class="mt-4 flex flex-wrap gap-4 text-xs text-pm-muted dark:text-pm-muted-dark">
+      @for (pid of groupOrderedIds(); track pid; let idx = $index) {
+        <span class="inline-flex items-center gap-2">
+          <span class="h-0.5 w-8 border-t-2 border-current" [class]="strokeClassAt(idx)"></span>
+          {{ mock[pid].name }} (real)
+        </span>
+      }
+    </div>
+  </section>
+</div>

@@ -64,10 +64,27 @@ En el **tablero** (`/app`) el bloque **amarillo** de inactividad indica cuántos
 
 ---
 
-## HU-04 en adelante — _(pendiente)_
+## HU-04 — Comparativa de desempeño (individual y grupal)
+
+### Resumen (qué hace el usuario)
+
+En **`/app/comparativa`** (menú **Comparativa de desempeño**) puede ver primero la **fórmula de progreso** en texto (hasta tener la imagen oficial del documento de HU). La **vista individual** permite elegir un paciente y ver **meta inicial** (línea discontinua) y **desempeño real** con puntos, leyenda y tooltips. La **vista grupal** permite marcar **varios pacientes** y ver en **un solo gráfico** sus curvas de desempeño real semanal (como proxy del *recovery score* en la demo), con leyenda por color.
+
+### Detalle técnico
+
+| Tema | Entrega |
+|------|---------|
+| Datos compartidos | `patient-detail.mock.ts` (`PATIENT_DETAIL_MOCK`, `PATIENT_DETAIL_IDS`); perfil de paciente importa el mismo mock. |
+| Página | `ComparisonPerformancePageComponent` en `pages/comparison/`; ruta `comparativa` en `workspace.routes.ts`. |
+| Gráficos | SVG + `computed` para puntos/líneas; grupo con escala común `groupBounds`. |
+| Fórmula | Bloque en UI + **§9** en `Baseline-Tokens.md`. |
+
+---
+
+## HU-05 en adelante — _(pendiente)_
 
 Mismo formato que HU-03.
 
 ---
 
-*Última actualización de contenido: HU-01, HU-02 y HU-03 cubiertas en este reporte.*
+*Última actualización de contenido: HU-01 a HU-04 cubiertas en este reporte.*

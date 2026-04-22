@@ -82,17 +82,17 @@ Objetivo: definir **qué debe existir en interfaz y datos simulados** para aline
 
 ### Checklist (frontend + mocks)
 
-- [ ] **Vista individual:** dos series superpuestas (“Meta inicial” / “Desempeño real”) + leyenda + tooltips.
-- [ ] **Fórmula de progreso:** imagen o texto en UI que reproduzca la fórmula del documento HU (o implementación mock alineada a ella).
-- [ ] **Vista grupal:** selector múltiple de pacientes y un solo canvas/tabla comparativa de *recovery scores* (datos mock).
-- [ ] **Ruta accesible:** entrada desde menú (no solo “en construcción” sin prototipo).
+- [x] **Vista individual:** dos series superpuestas (“Meta inicial” / “Desempeño real”) + leyenda + tooltips.
+- [x] **Fórmula de progreso:** imagen o texto en UI que reproduzca la fórmula del documento HU (o implementación mock alineada a ella).
+- [x] **Vista grupal:** selector múltiple de pacientes y un solo canvas/tabla comparativa de *recovery scores* (datos mock).
+- [x] **Ruta accesible:** entrada desde menú (no solo “en construcción” sin prototipo).
 
 ### Revisión preliminar
 
 | AC | Notas rápidas |
 |----|-----------------|
-| AC-01 (Cálculo / capas) | **Parcial:** en **detalle de paciente** hay meta vs real; ruta `/app/comparativa` está **en construcción**; imagen de fórmula **pendiente** en repo. |
-| AC-02 (Multiusuario) | **No:** no hay selección múltiple ni comparativa grupal en una sola gráfica. |
+| AC-01 (Cálculo / capas) | **Sí:** `/app/comparativa` con meta vs real + fórmula en texto; **§9** `Baseline-Tokens.md`; figura PNG del doc HU sigue siendo opcional en repo. |
+| AC-02 (Multiusuario) | **Sí:** checkboxes + un SVG con una curva «real» por paciente (recovery proxy) y leyenda. |
 
 ---
 

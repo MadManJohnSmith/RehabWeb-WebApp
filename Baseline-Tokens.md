@@ -138,3 +138,8 @@ En la demo del front, `TherapistSessionService` expone un **token ficticio** y e
 
 - **Regla de negocio en UI (mock):** se considera inactivo al paciente cuando han pasado **más de 3 días** desde su **última sesión** registrada (el número mostrado es ese lapso en días).
 - **Cron / job diario:** la ejecución programada en servidor es **N/A** en esta demo; la UI solo lo menciona en copy o `title` / `aria-label` para alinear expectativas con el AC de backend.
+
+## 9. Comparativa de desempeño (HU-04 / fórmula)
+
+- La pantalla **`/app/comparativa`** muestra en texto la fórmula de **progreso relativo (P)** en función de **desempeño real (R)**, **meta inicial (M₀)** y **meta objetivo (M*)**, hasta incorporar la figura oficial del documento de historias.
+- Las series **meta** y **real** son mocks 0–100 compartidos con el **perfil de paciente** (`patient-detail.mock.ts`).

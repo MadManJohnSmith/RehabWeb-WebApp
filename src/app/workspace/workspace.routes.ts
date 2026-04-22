@@ -35,12 +35,10 @@ export const workspaceRoutes: Routes = [
       {
         path: 'comparativa',
         loadComponent: () =>
-          import('./pages/shared/under-construction-page.component').then((m) => m.UnderConstructionPageComponent),
-        data: {
-          title: 'Comparativa de desempeño',
-          heading: 'Comparativa de desempeño',
-          description: 'Aquí se integrará el análisis comparativo clínico cuando el servidor esté listo.',
-        },
+          import('./pages/comparison/comparison-performance-page.component').then(
+            (m) => m.ComparisonPerformancePageComponent,
+          ),
+        data: { title: 'Comparativa de desempeño' },
       },
       {
         path: 'configuracion',

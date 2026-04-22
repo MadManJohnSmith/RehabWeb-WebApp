@@ -2,12 +2,19 @@ import { NgClass } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { combineLatest, switchMap } from 'rxjs';
+import { catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import type { SessionDetailDto, SessionListRowDto } from '../../data/session-history.dto';
 import { SESSION_PATIENT_FILTER_OPTIONS } from '../../data/sessions-list.mock';
 import { SessionHistoryApiService } from '../../services/session-history-api.service';
 import { ToastService } from '../../../core/toast.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
+
+type SessionListVm = {
+  rows: SessionListRowDto[];
+  total: number;
+  loading: boolean;
+  error: string | null;
+};
 
 @Component({
   selector: 'app-session-history-page',
@@ -24,16 +31,18 @@ export class SessionHistoryPageComponent {
   readonly page = signal(1);
   readonly pageSize = signal(5);
   readonly patientFilter = signal('');
+  readonly refreshTick = signal(0);
 
   readonly patientFilterOptions = SESSION_PATIENT_FILTER_OPTIONS;
   readonly pageSizeOptions = [5, 10, 15] as const;
 
-  readonly listResult = toSignal(
+  readonly listVm = toSignal(
     combineLatest([
       toObservable(this.search),
       toObservable(this.page),
       toObservable(this.pageSize),
       toObservable(this.patientFilter),
+      toObservable(this.refreshTick),
     ]).pipe(
       switchMap(([q, page, pageSize, patientId]) =>
         this.api.searchSessions({
@@ -41,18 +50,55 @@ export class SessionHistoryPageComponent {
           page,
           pageSize,
           patientId: patientId || undefined,
-        }),
+        }).pipe(
+          map(
+            (res) =>
+              ({
+                rows: res.rows,
+                total: res.total,
+                loading: false,
+                error: null,
+              }) satisfies SessionListVm,
+          ),
+          startWith({
+            rows: [] as SessionListRowDto[],
+            total: 0,
+            loading: true,
+            error: null,
+          } satisfies SessionListVm),
+          catchError(() =>
+            of({
+              rows: [],
+              total: 0,
+              loading: false,
+              error: 'No se pudo cargar el historial. Reintenta.',
+            } satisfies SessionListVm),
+          ),
+        ),
       ),
     ),
-    { initialValue: { rows: [] as SessionListRowDto[], total: 0 } },
+    {
+      initialValue: {
+        rows: [],
+        total: 0,
+        loading: true,
+        error: null,
+      } satisfies SessionListVm,
+    },
   );
 
+  readonly listRows = computed(() => this.listVm().rows);
+  readonly listTotal = computed(() => this.listVm().total);
+  readonly listLoading = computed(() => this.listVm().loading);
+  readonly listError = computed(() => this.listVm().error);
+
   readonly totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.listResult().total / this.pageSize())),
+    Math.max(1, Math.ceil(this.listTotal() / this.pageSize())),
   );
 
   readonly detailOpen = signal(false);
   readonly detailLoading = signal(false);
+  readonly detailError = signal<string | null>(null);
   readonly detail = signal<SessionDetailDto | null>(null);
 
   onSearchInput(ev: Event): void {
@@ -76,9 +122,14 @@ export class SessionHistoryPageComponent {
     this.page.set(clamped);
   }
 
+  retryList(): void {
+    this.refreshTick.update((n) => n + 1);
+  }
+
   openDetail(row: SessionListRowDto): void {
     this.detailOpen.set(true);
     this.detailLoading.set(true);
+    this.detailError.set(null);
     this.detail.set(null);
     this.api
       .getSessionDetail(row.id)
@@ -90,6 +141,9 @@ export class SessionHistoryPageComponent {
         },
         error: () => {
           this.detailLoading.set(false);
+          this.detailError.set(
+            'No se pudo cargar el detalle. Verifica `public/mock/session-history.json` o la conectividad.',
+          );
           this.toast.show('No se pudo cargar el detalle (revisa red o el archivo /mock/session-history.json).');
         },
       });
@@ -117,7 +171,7 @@ export class SessionHistoryPageComponent {
   }
 
   viewReportFirstVisible(): void {
-    const r = this.listResult().rows[0];
+    const r = this.listRows()[0];
     if (r) {
       this.viewReport(r);
     }

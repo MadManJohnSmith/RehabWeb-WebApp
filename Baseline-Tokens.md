@@ -149,3 +149,14 @@ En la demo del front, `TherapistSessionService` expone un **token ficticio** y e
 - **`/app/historial-sesiones`:** tabla ordenada **descendente** por fecha (y desempate por ID de sesión).
 - **Paginación:** tamaño de página configurable (5/10/15) y navegación anterior/siguiente; el listado paginado se obtiene vía `SessionHistoryApiService.searchSessions` con latencia simulada (`timer`), sin recarga completa del documento.
 - **Detalle:** al pulsar la acción de una fila se abre un **panel**; el contenido se carga con **`HttpClient.get('/mock/session-history.json')`** (entradas explícitas para algunas sesiones + detalle sintético para el resto). No se usa `window.location.reload`.
+
+## 11. Directorio de pacientes (HU-06 / CRUD demo)
+
+- **`/app/pacientes`:** tabla con ID, identificador externo de asociación, enlace a ficha, diagnóstico, estado (**riesgo / activo / alta**), última sesión y menú contextual (icono **more-vertical**).
+- **Persistencia:** `PatientsRegistryService` guarda en `localStorage` (`rehabweb.patient-registry.v1`) el directorio y fichas extra para pacientes vinculados; el **perfil** (`/app/pacientes/:id`) fusiona diagnóstico/nombre del registro con los datos gráficos del mock estático cuando aplica.
+
+## 12. Shell y navegación (HU-07)
+
+- **Sidebar y drawer:** navegación unificada en desktop/móvil con rutas equivalentes, botón hamburguesa y colapso en escritorio.
+- **Estados controlados de UI:** en `historial-sesiones` se añadieron estados de **carga** (skeleton), **error** (bloque + reintentar) y **vacío** para la consulta paginada simulada; el detalle usa panel con `HttpClient` sin recarga y fallback seguro.
+- **Módulos pendientes:** las rutas aún no implementadas continúan usando la vista de **en construcción** para evitar errores no controlados y mantener continuidad de navegación.

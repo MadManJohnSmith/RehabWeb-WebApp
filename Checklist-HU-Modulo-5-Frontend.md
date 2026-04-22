@@ -122,21 +122,21 @@ Objetivo: definir **qué debe existir en interfaz y datos simulados** para aline
 
 ### Checklist (frontend + mocks)
 
-- [ ] **Lista de pacientes** con ID único visible y navegación a ficha.
-- [ ] **Búsqueda / filtro** por identificador o nombre (mock).
-- [ ] **Asociación (UI):** flujo “vincular paciente existente” simulado (modal + confirmación) aunque persista en `localStorage` o memoria.
-- [ ] **Edición de diagnóstico** desde la lista (inline o modal) actualizando el modelo mock.
-- [ ] **Soft delete:** acción “Desvincular” que marque `deletedAt` / `activo: false` en mock y oculte o degrade la fila.
-- [ ] **Menú contextual** (tres puntos o similar) para acciones.
-- [ ] **Badge de estado:** Riesgo / Activo / Alta con color semántico en cada fila.
+- [x] **Lista de pacientes** con ID único visible y navegación a ficha.
+- [x] **Búsqueda / filtro** por identificador o nombre (mock).
+- [x] **Asociación (UI):** flujo “vincular paciente existente” simulado (modal + confirmación) aunque persista en `localStorage` o memoria.
+- [x] **Edición de diagnóstico** desde la lista (inline o modal) actualizando el modelo mock.
+- [x] **Soft delete:** acción “Desvincular” que marque `deletedAt` / `activo: false` en mock y oculte o degrade la fila.
+- [x] **Menú contextual** (tres puntos o similar) para acciones.
+- [x] **Badge de estado:** Riesgo / Activo / Alta con color semántico en cada fila.
 
 ### Revisión preliminar
 
 | AC | Notas rápidas |
 |----|-----------------|
-| AC-01 (Asociación / búsqueda) | **Parcial:** lista + enlace a detalle; **no** hay búsqueda ni flujo de vinculación explícito. |
-| AC-02 (Edición / soft delete / menú) | **No.** |
-| AC-03 (Estado Riesgo/Activo/Alta) | **No.** |
+| AC-01 (Asociación / búsqueda) | **Sí:** búsqueda + ID externo visible + modal «Vincular» con persistencia `localStorage`. |
+| AC-02 (Edición / soft delete / menú) | **Sí:** menú ⋮, edición diagnóstico (modal), desvincular con `deletedAt` + reactivar. |
+| AC-03 (Estado Riesgo/Activo/Alta) | **Sí:** badges semánticos + selector al vincular; perfil fusiona diagnóstico del registro. |
 
 ---
 
@@ -146,21 +146,21 @@ Objetivo: definir **qué debe existir en interfaz y datos simulados** para aline
 
 ### Checklist (frontend + mocks)
 
-- [ ] **Sidebar colapsable** (desktop) y **drawer** en móvil con mismas rutas.
-- [ ] **Accesos:** tablero, pacientes, reportes, configuración (o equivalente), **cerrar sesión** claro.
-- [ ] **Tablas:** scroll horizontal o cards en `max-md` donde la tabla no quepa.
-- [ ] **Gráficas:** contenedor que escale (`viewBox`, `min-w-0`, alturas fluidas).
-- [ ] **Estados de carga:** *skeleton* o *spinner* en rutas que consuman `HttpClient` (cuando existan llamadas reales); con mocks, simular `delay` y mostrar loading.
-- [ ] **Vacío / error / en construcción:** pantalla o bloque dedicado + **sin** errores no capturados en consola en flujos normales.
-- [ ] **Toasts o banners** para acciones simuladas (ya alineado con “estado controlado”).
+- [x] **Sidebar colapsable** (desktop) y **drawer** en móvil con mismas rutas.
+- [x] **Accesos:** tablero, pacientes, reportes, configuración (o equivalente), **cerrar sesión** claro.
+- [x] **Tablas:** scroll horizontal o cards en `max-md` donde la tabla no quepa.
+- [x] **Gráficas:** contenedor que escale (`viewBox`, `min-w-0`, alturas fluidas).
+- [x] **Estados de carga:** *skeleton* o *spinner* en rutas que consuman `HttpClient` (cuando existan llamadas reales); con mocks, simular `delay` y mostrar loading.
+- [x] **Vacío / error / en construcción:** pantalla o bloque dedicado + **sin** errores no capturados en consola en flujos normales.
+- [x] **Toasts o banners** para acciones simuladas (ya alineado con “estado controlado”).
 
 ### Revisión preliminar
 
 | AC | Notas rápidas |
 |----|-----------------|
-| AC-01 (Sidebar) | **Parcial:** colapsable, menú hamburguesa, rutas principales; “Configuración” va a **en construcción** (aceptable como placeholder si está documentado). |
-| AC-02 (Responsive) | **Parcial:** muchas vistas adaptan; falta repaso sistemático tabla+gráfica en todas las pantallas. |
-| AC-03 (Carga / errores) | **Parcial:** toasts y página en construcción; **faltan** skeletons globales y manejo explícito de error HTTP en vistas con datos remotos (aún no hay API). |
+| AC-01 (Sidebar) | **Sí:** colapsable, menú hamburguesa y rutas principales; configuración con placeholder controlado. |
+| AC-02 (Responsive) | **Sí:** tablas con `overflow-x-auto` y gráficas con `viewBox` + contenedores fluidos. |
+| AC-03 (Carga / errores) | **Sí:** `historial-sesiones` con `loading` (skeleton), error + reintento, estado vacío; rutas pendientes con pantalla en construcción y acciones simuladas con toasts. |
 
 ---
 

@@ -97,10 +97,44 @@ En **`/app/historial-sesiones`** ve una tabla **de la más reciente a la más an
 
 ---
 
-## HU-06 en adelante — _(pendiente)_
+## HU-06 — Gestión y asociación de pacientes (CRUD)
+
+### Resumen (qué hace el usuario)
+
+En **`/app/pacientes`** ve una **tabla** con ID, identificador de asociación, nombre (enlace a la **ficha**), diagnóstico, **estado** (riesgo / activo / alta con colores), última sesión y un menú **⋮**. Puede **buscar**, **vincular** un paciente nuevo (modal), **editar el diagnóstico** desde otro modal, **desvincular** (baja lógica: la fila se atenúa y marca “Desvinculado”) o **reactivar**. Los cambios se guardan en el **navegador** (`localStorage`); al abrir la ficha, el diagnóstico editado se refleja ahí cuando corresponde.
+
+### Detalle técnico
+
+| Tema | Entrega |
+|------|---------|
+| Registro | `PatientsRegistryService` — seed desde `PATIENT_DETAIL_MOCK`, `linkPatient`, `updateCondition`, `unlink` / `restore`. |
+| UI | `patients-list-page` — modales, `FormsModule`, menú flotante, overlay cierre. |
+| Perfil | `patient-detail-page` — `computed` fusiona `getDetailExtra` / fila del registro con mock gráfico. |
+| Icono | `more-vertical` en `UiIconComponent` (Lucide). |
+
+---
+
+## HU-07 — Infraestructura de interfaz y navegación
+
+### Resumen (qué hace el usuario)
+
+El shell mantiene navegación consistente entre escritorio y móvil: **sidebar colapsable**, **drawer** con hamburguesa y accesos a módulos clave (incluye configuración placeholder y cerrar sesión). En rutas con carga simulada, como **`/app/historial-sesiones`**, se muestran estados explícitos de **carga**, **vacío** y **error** con opción de reintento, en vez de fallos silenciosos. Las pantallas no implementadas siguen en **“en construcción”** para no romper flujo.
+
+### Detalle técnico
+
+| Tema | Entrega |
+|------|---------|
+| Shell | `shell-layout` + `shell-sidebar`: drawer móvil, overlay y colapso en desktop con mismas rutas. |
+| Responsive | Tablas con `overflow-x-auto`; gráficas con `viewBox` y contenedores fluidos (`min-w-0`). |
+| Carga/error/vacío | `session-history-page`: `listVm` con `loading/error`, skeleton, bloque de error + reintento y estado vacío, además de panel de detalle con fallback. |
+| En construcción | rutas placeholder (`under-construction-page`) para módulos pendientes. |
+
+---
+
+## HU-08 en adelante — _(pendiente)_
 
 Mismo formato que HU-03.
 
 ---
 
-*Última actualización de contenido: HU-01 a HU-05 cubiertas en este reporte.*
+*Última actualización de contenido: HU-01 a HU-07 cubiertas en este reporte.*

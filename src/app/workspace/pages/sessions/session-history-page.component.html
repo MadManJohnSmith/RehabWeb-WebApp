@@ -38,6 +38,27 @@
   <div
     class="overflow-hidden rounded-card border border-pm-border bg-pm-surface shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
   >
+    @if (listLoading()) {
+      <div class="space-y-3 px-4 py-4">
+        <div class="h-4 w-44 animate-pulse rounded bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+        <div class="h-10 animate-pulse rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+        <div class="h-10 animate-pulse rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+        <div class="h-10 animate-pulse rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+      </div>
+    } @else if (listError(); as err) {
+      <div class="px-4 py-6">
+        <p class="rounded-control border border-pm-coral bg-pm-danger-bg px-3 py-2 text-sm text-pm-coral dark:border-pm-coral dark:bg-pm-danger-bg-dark">
+          {{ err }}
+        </p>
+        <button
+          type="button"
+          (click)="retryList()"
+          class="mt-3 inline-flex rounded-control border border-pm-border px-3 py-1.5 text-sm font-medium text-pm-ink hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark"
+        >
+          Reintentar carga
+        </button>
+      </div>
+    } @else {
     <div class="overflow-x-auto">
       <table class="min-w-[920px] w-full border-collapse text-left text-sm">
         <thead class="bg-pm-canvas text-xs font-semibold uppercase tracking-wide text-pm-muted dark:bg-pm-canvas-dark dark:text-pm-muted-dark">
@@ -53,7 +74,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-pm-border dark:divide-pm-border-dark">
-          @for (r of listResult().rows; track r.id) {
+          @for (r of listRows(); track r.id) {
             <tr class="hover:bg-pm-canvas/60 dark:hover:bg-pm-canvas-dark/40">
               <td class="px-4 py-3 font-mono text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark">
                 {{ r.id }}
@@ -100,13 +121,14 @@
         </tbody>
       </table>
     </div>
+    }
 
     <div
       class="flex flex-col gap-3 border-t border-pm-border px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between dark:border-pm-border-dark"
     >
       <div class="flex flex-wrap items-center gap-2 text-xs text-pm-muted dark:text-pm-muted-dark">
         <span>
-          Mostrando {{ listResult().rows.length }} de {{ listResult().total }} sesiones
+          Mostrando {{ listRows().length }} de {{ listTotal() }} sesiones
         </span>
         <span class="hidden sm:inline">·</span>
         <label class="inline-flex items-center gap-2">
@@ -126,7 +148,7 @@
         <button
           type="button"
           (click)="viewReportFirstVisible()"
-          [disabled]="!listResult().rows.length"
+          [disabled]="!listRows().length"
           class="inline-flex items-center justify-center rounded-control border border-pm-border px-4 py-2 text-sm font-medium text-pm-ink hover:border-pm-primary hover:text-pm-primary disabled:pointer-events-none disabled:opacity-40 dark:border-pm-border-dark dark:text-pm-ink-on-dark"
         >
           Reporte (primera fila)
@@ -198,6 +220,10 @@
           <div class="h-4 max-w-xs rounded bg-pm-canvas dark:bg-pm-canvas-dark"></div>
           <div class="h-24 rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
         </div>
+      } @else if (detailError(); as e) {
+        <p class="rounded-control border border-pm-coral bg-pm-danger-bg px-3 py-2 text-sm text-pm-coral dark:border-pm-coral dark:bg-pm-danger-bg-dark">
+          {{ e }}
+        </p>
       } @else if (detail(); as d) {
         <dl class="space-y-3 text-sm">
           <div>

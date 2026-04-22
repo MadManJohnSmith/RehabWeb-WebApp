@@ -25,6 +25,7 @@ import {
   LogOut,
   Mail,
   Menu,
+  MoreVertical,
   Moon,
   MonitorPlay,
   Search,
@@ -54,6 +55,7 @@ export type UiIconName =
   | 'log-out'
   | 'mail'
   | 'menu'
+  | 'more-vertical'
   | 'moon'
   | 'monitor-play'
   | 'search'
@@ -80,6 +82,7 @@ const MAP: Record<UiIconName, typeof LayoutDashboard> = {
   'log-out': LogOut,
   mail: Mail,
   menu: Menu,
+  'more-vertical': MoreVertical,
   moon: Moon,
   'monitor-play': MonitorPlay,
   search: Search,

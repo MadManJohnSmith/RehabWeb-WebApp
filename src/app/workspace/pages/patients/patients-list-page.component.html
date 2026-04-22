@@ -1,33 +1,268 @@
-<div class="mx-auto max-w-4xl space-y-6">
-  <div>
-    <p class="text-xs font-medium uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">Pacientes</p>
-    <h1 class="mt-1 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Directorio clínico</h1>
-    <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
-      Lista simulada; cada fila enlaza al perfil detallado (hasta conectar con el servidor).
-    </p>
+<div class="mx-auto w-full max-w-5xl space-y-6 pb-4">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-xs font-medium uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">Pacientes</p>
+      <h1 class="mt-1 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Directorio clínico</h1>
+      <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
+        Gestión demo (HU-06): búsqueda, estados <strong class="text-pm-ink dark:text-pm-ink-on-dark">Riesgo / Activo / Alta</strong>, edición de diagnóstico, desvinculación lógica y vinculación con persistencia en
+        <span class="font-mono text-xs">localStorage</span>.
+      </p>
+    </div>
+    <button
+      type="button"
+      (click)="openLink()"
+      class="inline-flex shrink-0 items-center justify-center gap-2 rounded-control bg-pm-primary px-4 py-2.5 text-sm font-semibold text-white shadow-pm-sm hover:bg-pm-primary-hover dark:shadow-pm-sm-dark"
+    >
+      <app-ui-icon name="users" [size]="18" svgClass="text-white" />
+      Vincular paciente
+    </button>
   </div>
 
-  <div class="space-y-3">
-    @for (p of patients; track p.id) {
-      <a
-        [routerLink]="['/app/pacientes', p.id]"
-        class="flex items-center gap-4 rounded-card border border-pm-border bg-pm-surface p-4 shadow-pm-sm transition hover:border-pm-primary/40 hover:shadow-pm-md dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark dark:hover:border-pm-primary/50"
-      >
-        <div
-          class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-pm-primary-soft text-sm font-bold text-pm-primary dark:bg-pm-primary-soft-dark dark:text-pm-primary"
-        >
-          {{ p.name.slice(0, 1) }}
-        </div>
-        <div class="min-w-0 flex-1">
-          <p class="truncate font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ p.name }}</p>
-          <p class="truncate text-sm text-pm-muted dark:text-pm-muted-dark">{{ p.condition }}</p>
-        </div>
-        <div class="hidden shrink-0 text-right text-xs text-pm-muted sm:block dark:text-pm-muted-dark">
-          <p class="font-medium text-pm-ink dark:text-pm-ink-on-dark">Última sesión</p>
-          <p>{{ p.lastSession }}</p>
-        </div>
-        <app-ui-icon name="chevron-right" [size]="20" class="shrink-0 text-pm-muted dark:text-pm-muted-dark" />
-      </a>
-    }
+  <div class="relative">
+    <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-pm-muted dark:text-pm-muted-dark">
+      <app-ui-icon name="search" [size]="18" />
+    </span>
+    <input
+      type="search"
+      [value]="search()"
+      (input)="onSearch($event)"
+      placeholder="Buscar por ID, nombre, identificador externo o diagnóstico…"
+      class="w-full rounded-control border border-pm-border bg-pm-surface py-2.5 pl-10 pr-3 text-sm outline-none ring-pm-primary focus:ring-2 dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
+    />
+  </div>
+
+  <div
+    class="overflow-hidden rounded-card border border-pm-border bg-pm-surface shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+  >
+    <div class="overflow-x-auto">
+      <table class="min-w-[720px] w-full border-collapse text-left text-sm">
+        <thead class="bg-pm-canvas text-xs font-semibold uppercase tracking-wide text-pm-muted dark:bg-pm-canvas-dark dark:text-pm-muted-dark">
+          <tr>
+            <th class="px-4 py-3">ID</th>
+            <th class="px-4 py-3">Identificador</th>
+            <th class="px-4 py-3">Paciente</th>
+            <th class="px-4 py-3">Diagnóstico</th>
+            <th class="px-4 py-3">Estado</th>
+            <th class="px-4 py-3">Última sesión</th>
+            <th class="px-4 py-3 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-pm-border dark:divide-pm-border-dark">
+          @for (row of filteredRows(); track row.id) {
+            <tr class="hover:bg-pm-canvas/50 dark:hover:bg-pm-canvas-dark/40" [class]="rowOpacity(row)">
+              <td class="px-4 py-3 font-mono text-xs font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ row.id }}</td>
+              <td class="max-w-[10rem] truncate px-4 py-3 text-xs text-pm-muted dark:text-pm-muted-dark" [title]="row.externalUniqueId">
+                {{ row.externalUniqueId }}
+              </td>
+              <td class="px-4 py-3 font-medium text-pm-ink dark:text-pm-ink-on-dark">
+                <a [routerLink]="['/app/pacientes', row.id]" class="text-pm-primary hover:underline">{{ row.name }}</a>
+              </td>
+              <td class="max-w-xs truncate px-4 py-3 text-pm-muted dark:text-pm-muted-dark" [title]="row.condition">
+                {{ row.condition }}
+              </td>
+              <td class="px-4 py-3">
+                <span
+                  class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize"
+                  [ngClass]="statusBadgeClass(row.clinicalStatus)"
+                >
+                  {{ row.clinicalStatus }}
+                </span>
+                @if (row.deletedAt) {
+                  <span class="mt-1 block text-[10px] font-medium uppercase text-pm-coral">Desvinculado</span>
+                }
+              </td>
+              <td class="px-4 py-3 text-pm-muted dark:text-pm-muted-dark">{{ row.lastSession }}</td>
+              <td class="relative px-4 py-3 text-right">
+                <button
+                  type="button"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-pm-border text-pm-muted hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-muted-dark"
+                  [attr.aria-expanded]="menuOpenId() === row.id"
+                  aria-label="Menú de acciones"
+                  (click)="toggleMenu(row.id); $event.stopPropagation()"
+                >
+                  <app-ui-icon name="more-vertical" [size]="18" />
+                </button>
+                @if (menuOpenId() === row.id) {
+                  <div
+                    class="absolute right-4 top-10 z-30 min-w-[12rem] rounded-control border border-pm-border bg-pm-surface py-1 text-left shadow-pm-md dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-md-dark"
+                    role="menu"
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      class="flex w-full px-3 py-2 text-left text-sm text-pm-ink hover:bg-pm-canvas dark:text-pm-ink-on-dark dark:hover:bg-pm-canvas-dark"
+                      (click)="openEdit(row)"
+                    >
+                      Editar diagnóstico…
+                    </button>
+                    @if (!row.deletedAt) {
+                      <button
+                        type="button"
+                        role="menuitem"
+                        class="flex w-full px-3 py-2 text-left text-sm text-pm-coral hover:bg-pm-danger-bg dark:text-pm-coral dark:hover:bg-pm-danger-bg-dark"
+                        (click)="confirmUnlink(row)"
+                      >
+                        Desvincular (soft delete)
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        role="menuitem"
+                        class="flex w-full px-3 py-2 text-left text-sm text-pm-primary hover:bg-pm-primary-soft dark:hover:bg-pm-primary-soft-dark"
+                        (click)="confirmRestore(row)"
+                      >
+                        Reactivar vinculación
+                      </button>
+                    }
+                    <a
+                      role="menuitem"
+                      [routerLink]="['/app/pacientes', row.id]"
+                      class="flex w-full px-3 py-2 text-left text-sm text-pm-ink hover:bg-pm-canvas dark:text-pm-ink-on-dark dark:hover:bg-pm-canvas-dark"
+                      (click)="closeMenu()"
+                    >
+                      Abrir ficha
+                    </a>
+                  </div>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="px-4 py-10 text-center text-sm text-pm-muted dark:text-pm-muted-dark">
+                No hay coincidencias con la búsqueda.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
+
+@if (menuOpenId()) {
+  <button
+    type="button"
+    class="fixed inset-0 z-20 cursor-default bg-transparent"
+    (click)="closeMenu()"
+    tabindex="-1"
+    aria-label="Cerrar menú"
+  ></button>
+}
+
+@if (editModal(); as em) {
+  <div
+    class="fixed inset-0 z-50 flex items-end justify-center bg-pm-ink/40 p-4 sm:items-center dark:bg-pm-ink/55"
+    (click)="closeEdit()"
+  >
+    <div
+      class="w-full max-w-md rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-md dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-md-dark"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-dx-title"
+    >
+      <h2 id="edit-dx-title" class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Editar diagnóstico principal</h2>
+      <p class="mt-1 text-xs text-pm-muted dark:text-pm-muted-dark">Paciente: <span class="font-mono">{{ em.id }}</span></p>
+      <label class="mt-4 block text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Diagnóstico</label>
+      <textarea
+        rows="4"
+        class="mt-1 w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-2 text-sm text-pm-ink dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+        [ngModel]="editConditionDraft()"
+        (ngModelChange)="editConditionDraft.set($event)"
+      ></textarea>
+      <div class="mt-4 flex justify-end gap-2">
+        <button
+          type="button"
+          (click)="closeEdit()"
+          class="rounded-control border border-pm-border px-4 py-2 text-sm font-medium text-pm-ink dark:border-pm-border-dark dark:text-pm-ink-on-dark"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="saveEdit()"
+          class="rounded-control bg-pm-primary px-4 py-2 text-sm font-semibold text-white hover:bg-pm-primary-hover"
+        >
+          Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (linkModalOpen()) {
+  <div
+    class="fixed inset-0 z-50 flex items-end justify-center bg-pm-ink/40 p-4 sm:items-center dark:bg-pm-ink/55"
+    (click)="closeLink()"
+  >
+    <div
+      class="w-full max-w-md rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-md dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-md-dark"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="link-title"
+    >
+      <h2 id="link-title" class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Vincular paciente existente</h2>
+      <p class="mt-1 text-xs text-pm-muted dark:text-pm-muted-dark">
+        Simula la asociación por identificador único (AC-01). Se guarda en <span class="font-mono">localStorage</span>.
+      </p>
+      <div class="mt-4 space-y-3">
+        <div>
+          <label class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Identificador único</label>
+          <input
+            class="mt-1 w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-2 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+            [ngModel]="linkExternalId()"
+            (ngModelChange)="linkExternalId.set($event)"
+            placeholder="Ej. URN:PAC:EXT-9921"
+          />
+        </div>
+        <div>
+          <label class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Nombre</label>
+          <input
+            class="mt-1 w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-2 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+            [ngModel]="linkName()"
+            (ngModelChange)="linkName.set($event)"
+            placeholder="Nombre completo"
+          />
+        </div>
+        <div>
+          <label class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Diagnóstico principal</label>
+          <input
+            class="mt-1 w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-2 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+            [ngModel]="linkCondition()"
+            (ngModelChange)="linkCondition.set($event)"
+            placeholder="Texto clínico"
+          />
+        </div>
+        <div>
+          <label class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Estado clínico</label>
+          <select
+            class="mt-1 w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-2 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+            [ngModel]="linkClinicalStatus()"
+            (ngModelChange)="onLinkStatusChange($event)"
+          >
+            <option value="riesgo">Riesgo</option>
+            <option value="activo">Activo</option>
+            <option value="alta">Alta</option>
+          </select>
+        </div>
+      </div>
+      <div class="mt-4 flex justify-end gap-2">
+        <button
+          type="button"
+          (click)="closeLink()"
+          class="rounded-control border border-pm-border px-4 py-2 text-sm font-medium text-pm-ink dark:border-pm-border-dark dark:text-pm-ink-on-dark"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="saveLink()"
+          class="rounded-control bg-pm-primary px-4 py-2 text-sm font-semibold text-white hover:bg-pm-primary-hover"
+        >
+          Vincular
+        </button>
+      </div>
+    </div>
+  </div>
+}

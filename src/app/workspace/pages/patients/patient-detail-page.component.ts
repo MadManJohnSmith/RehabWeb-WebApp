@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { PATIENT_DETAIL_MOCK } from '../../data/patient-detail.mock';
+import { PatientsRegistryService } from '../../services/patients-registry.service';
 import { ToastService } from '../../../core/toast.service';
 
 @Component({
@@ -14,6 +15,7 @@ import { ToastService } from '../../../core/toast.service';
 export class PatientDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
+  private readonly registry = inject(PatientsRegistryService);
 
   private readonly patientId = toSignal(
     this.route.paramMap.pipe(map((p) => p.get('patientId') ?? '')),
@@ -21,8 +23,21 @@ export class PatientDetailPageComponent {
   );
 
   protected readonly patient = computed(() => {
+    this.registry.directorySorted();
     const id = this.patientId();
-    return PATIENT_DETAIL_MOCK[id] ?? PATIENT_DETAIL_MOCK['p-001'];
+    const extra = this.registry.getDetailExtra(id);
+    if (extra) {
+      return extra;
+    }
+    const base = PATIENT_DETAIL_MOCK[id];
+    if (base) {
+      const row = this.registry.getDirectoryRow(id);
+      if (row) {
+        return { ...base, name: row.name, condition: row.condition };
+      }
+      return base;
+    }
+    return PATIENT_DETAIL_MOCK['p-001'];
   });
 
   protected readonly chartDots = computed(() => {
@@ -34,7 +49,15 @@ export class PatientDetailPageComponent {
 
   constructor() {
     afterNextRender(() => {
-      if (!(this.patientId() in PATIENT_DETAIL_MOCK) && this.patientId()) {
+      const id = this.patientId();
+      if (!id) {
+        return;
+      }
+      const known =
+        id in PATIENT_DETAIL_MOCK ||
+        !!this.registry.getDetailExtra(id) ||
+        !!this.registry.getDirectoryRow(id);
+      if (!known) {
         this.toast.show('Paciente no encontrado en los datos de demostración; se muestra un ejemplo.');
       }
     });

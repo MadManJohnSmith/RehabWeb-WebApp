@@ -46,9 +46,21 @@ En **Generación de reportes** (`/app/reportes`) puede elegir **paciente** (obli
 
 ---
 
-## HU-03 — _(pendiente de añadir reporte)_
+## HU-03 — Alertas proactivas de inactividad
 
-Cuando se implemente, documentar aquí: **resumen para usuario**, **ruta(s)**, **detalle técnico** (archivos / servicios mock) y **enlace al checklist** actualizado.
+### Resumen (qué hace el usuario)
+
+En el **tablero** (`/app`) el bloque **amarillo** de inactividad indica cuántos pacientes llevan **más de 3 días** sin sesión; cada tarjeta lleva al **perfil** de ese paciente. Hay un botón de texto **“Job en servidor”** con *tooltip* que explica que en producción un **Cron** revisaría esto cada día. En **Alertas de inactividad** (`/app/alertas`) hay una **tabla** con el mismo criterio, enlaces al perfil y nota al pie; otro control explica el Cron (solo copy en demo).
+
+### Detalle técnico
+
+| Tema | Entrega |
+|------|---------|
+| Regla > 3 días | Copy en banner y en página de alertas; mock con días 5, 6 y 7 (todos > 3). |
+| Enlaces | Tarjetas del dashboard → `[routerLink]="['/app/pacientes', p.patientId]"`; tabla → nombre + botón **Perfil** + `patientId` en `InactivityPatientDto` / filas mock. |
+| Mock tipo lista | `InactivityAlertRowDto`, `INACTIVITY_ALERTS_MOCK`, `InactivityAlertsDataService.getAlerts()`. |
+| Cron (N/A front) | `title` / `aria-label` en dashboard y en `/app/alertas`; **§8** en `Baseline-Tokens.md`. |
+| Archivos | `dashboard-metrics.dto/mock`, `dashboard-page`, `inactivity-alerts.dto/mock`, `inactivity-alerts-data.service.ts`, `inactivity-alerts-page`. |
 
 ---
 
@@ -58,4 +70,4 @@ Mismo formato que HU-03.
 
 ---
 
-*Última actualización de contenido: HU-01 y HU-02 cubiertas en este reporte.*
+*Última actualización de contenido: HU-01, HU-02 y HU-03 cubiertas en este reporte.*

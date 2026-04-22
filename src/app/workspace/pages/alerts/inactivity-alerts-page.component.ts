@@ -1,27 +1,25 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
+import { INACTIVITY_ALERTS_MOCK } from '../../data/inactivity-alerts.mock';
+import { InactivityAlertsDataService } from '../../services/inactivity-alerts-data.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
-
-type InactivityRow = {
-  id: string;
-  paciente: string;
-  dias: number;
-  prioridad: 'alta' | 'media';
-};
 
 @Component({
   selector: 'app-inactivity-alerts-page',
   standalone: true,
-  imports: [UiIconComponent],
+  imports: [RouterLink, UiIconComponent],
   templateUrl: './inactivity-alerts-page.component.html',
 })
 export class InactivityAlertsPageComponent {
-  readonly filas: InactivityRow[] = [
-    { id: 'A-104', paciente: 'Paciente cohorte A-104', dias: 5, prioridad: 'alta' },
-    { id: 'A-088', paciente: 'Paciente cohorte A-088', dias: 4, prioridad: 'alta' },
-    { id: 'B-201', paciente: 'Paciente cohorte B-201', dias: 3, prioridad: 'media' },
-  ];
+  private readonly alertsData = inject(InactivityAlertsDataService);
+
+  readonly filas = toSignal(this.alertsData.getAlerts(), { initialValue: INACTIVITY_ALERTS_MOCK });
 
   protected readonly log = signal<string[]>([]);
+
+  readonly cronHint =
+    'En producción: un Cron en el servidor revisa cada día las últimas sesiones y eleva alerta si la diferencia con hoy es mayor a 3 días.';
 
   motivacional(id: string): void {
     this.log.update((l) => [`Mensaje motivacional (simulado): ${id}`, ...l].slice(0, 6));

@@ -26,6 +26,10 @@ export class DashboardPageComponent {
   private readonly toast = inject(ToastService);
   private readonly dashboardData = inject(DashboardDataService);
 
+  /** Tooltip / aria: AC HU-03 (Cron es backend). */
+  readonly inactivityCronHint =
+    'En producción: un Cron en el servidor revisa cada día las últimas sesiones y marca inactividad cuando pasan más de 3 días sin registro.';
+
   /** Vista reactiva del mock tipo respuesta API (misma referencia hasta primer tick). */
   readonly vm = toSignal(this.dashboardData.getDashboardMetrics(), {
     initialValue: DASHBOARD_METRICS_MOCK,

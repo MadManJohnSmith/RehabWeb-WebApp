@@ -26,7 +26,16 @@
           <p class="text-sm font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ d.inactivityHeadline }}</p>
           <p class="mt-0.5 text-sm text-pm-muted dark:text-pm-muted-dark">
             <span class="font-semibold text-amber-900 dark:text-amber-100">{{ d.inactivityCount }} pacientes</span>
-            con seguimiento prioritario por inactividad.
+            con más de <span class="font-semibold text-amber-900 dark:text-amber-100">3 días</span> sin sesión
+            registrada (criterio demo).
+            <button
+              type="button"
+              class="ml-1 inline align-baseline text-xs font-semibold text-pm-primary underline decoration-pm-primary/50 underline-offset-2 hover:decoration-pm-primary"
+              [attr.title]="inactivityCronHint"
+              [attr.aria-label]="inactivityCronHint"
+            >
+              Job en servidor
+            </button>
           </p>
         </div>
       </div>
@@ -38,9 +47,10 @@
       </a>
     </div>
     <div class="mt-4 grid gap-3 sm:grid-cols-2">
-      @for (p of d.inactivityPatients; track p.name) {
-        <div
-          class="flex items-center gap-3 rounded-control border border-amber-200/60 bg-pm-surface/90 p-3 dark:border-amber-800/40 dark:bg-pm-surface-dark/80"
+      @for (p of d.inactivityPatients; track p.patientId) {
+        <a
+          [routerLink]="['/app/pacientes', p.patientId]"
+          class="flex items-center gap-3 rounded-control border border-amber-200/60 bg-pm-surface/90 p-3 transition hover:border-pm-primary hover:shadow-pm-sm dark:border-amber-800/40 dark:bg-pm-surface-dark/80 dark:hover:border-pm-primary"
         >
           <div
             class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-pm-primary-soft text-xs font-bold text-pm-primary dark:bg-pm-primary-soft-dark dark:text-pm-primary"
@@ -50,13 +60,14 @@
           <div class="min-w-0 flex-1">
             <p class="truncate font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ p.name }}</p>
             <p class="truncate text-xs text-pm-muted dark:text-pm-muted-dark">{{ p.condition }}</p>
+            <p class="mt-0.5 text-xs font-medium text-pm-primary">Ver perfil del paciente →</p>
           </div>
           <span
             class="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 dark:bg-amber-900/50 dark:text-amber-50"
           >
             {{ p.days }} días
           </span>
-        </div>
+        </a>
       }
     </div>
   </section>

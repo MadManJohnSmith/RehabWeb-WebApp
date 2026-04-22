@@ -1,8 +1,17 @@
-<div class="mx-auto max-w-6xl space-y-6">
+<div class="mx-auto w-full max-w-6xl space-y-6">
   <div>
     <h2 class="text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">Alertas de inactividad</h2>
     <p class="mt-1 text-sm font-normal text-pm-muted dark:text-pm-muted-dark">
-      Pacientes sin actividad registrada en más de 3 días (criterio operativo; datos simulados).
+      Listado simulado: solo pacientes con <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">más de 3 días</span>
+      sin actividad registrada desde la última sesión.
+      <button
+        type="button"
+        class="ml-1 inline align-baseline text-sm font-semibold text-pm-primary underline decoration-pm-primary/50 underline-offset-2 hover:decoration-pm-primary"
+        [attr.title]="cronHint"
+        [attr.aria-label]="cronHint"
+      >
+        Cron en servidor (demo)
+      </button>
     </p>
   </div>
 
@@ -31,10 +40,10 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-pm-border dark:divide-pm-border-dark">
-          @for (row of filas; track row.id) {
+          @for (row of filas(); track row.alertId) {
             <tr>
               <td class="px-4 py-3">
-                @if (row.prioridad === 'alta') {
+                @if (row.priority === 'alta') {
                   <span
                     class="inline-flex items-center gap-1 rounded-full bg-pm-danger-bg px-2 py-0.5 text-xs font-medium text-pm-danger dark:bg-pm-danger-bg-dark dark:text-pm-danger-dark"
                   >
@@ -44,20 +53,31 @@
                 } @else {
                   <span
                     class="inline-flex rounded-full bg-pm-canvas px-2 py-0.5 text-xs font-medium text-pm-muted dark:bg-pm-canvas-dark dark:text-pm-muted-dark"
-                    >Media</span
-                  >
+                    >Media</span>
                 }
               </td>
               <td class="px-4 py-3 font-normal text-pm-ink dark:text-pm-ink-on-dark">
-                {{ row.paciente }}
-                <span class="mt-0.5 block text-xs text-pm-muted dark:text-pm-muted-dark">{{ row.id }}</span>
+                <a
+                  [routerLink]="['/app/pacientes', row.patientId]"
+                  class="font-semibold text-pm-primary hover:underline"
+                  >{{ row.patientName }}</a>
+                <span class="mt-0.5 block text-xs text-pm-muted dark:text-pm-muted-dark">{{ row.patientId }}</span>
               </td>
-              <td class="px-4 py-3 font-mono text-sm text-pm-ink dark:text-pm-ink-on-dark">{{ row.dias }}</td>
+              <td class="px-4 py-3 font-mono text-sm text-pm-ink dark:text-pm-ink-on-dark">
+                {{ row.daysSinceActivity }} <span class="text-xs font-sans text-pm-muted dark:text-pm-muted-dark">(> 3)</span>
+              </td>
               <td class="px-4 py-3 text-right">
                 <div class="flex flex-wrap justify-end gap-2">
+                  <a
+                    [routerLink]="['/app/pacientes', row.patientId]"
+                    class="inline-flex items-center gap-1.5 rounded-control border border-pm-border px-3 py-1.5 text-xs font-medium text-pm-ink transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark"
+                  >
+                    <app-ui-icon name="users" [size]="14" />
+                    Perfil
+                  </a>
                   <button
                     type="button"
-                    (click)="motivacional(row.id)"
+                    (click)="motivacional(row.alertId)"
                     class="inline-flex items-center gap-1.5 rounded-control border border-pm-border px-3 py-1.5 text-xs font-medium text-pm-ink transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark"
                   >
                     <app-ui-icon name="send" [size]="14" />
@@ -65,7 +85,7 @@
                   </button>
                   <button
                     type="button"
-                    (click)="resolver(row.id)"
+                    (click)="resolver(row.alertId)"
                     class="inline-flex items-center gap-1.5 rounded-control bg-pm-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-pm-primary-hover"
                   >
                     <app-ui-icon name="circle-check" [size]="14" />
@@ -78,5 +98,9 @@
         </tbody>
       </table>
     </div>
+    <p class="border-t border-pm-border px-4 py-3 text-xs text-pm-muted dark:border-pm-border-dark dark:text-pm-muted-dark">
+      Criterio clínico operativo: inactividad cuando los días desde la última sesión superan 3 (los datos son mock hasta
+      conectar API y Cron).
+    </p>
   </div>
 </div>

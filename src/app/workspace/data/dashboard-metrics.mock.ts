@@ -16,8 +16,14 @@ export const DASHBOARD_METRICS_MOCK: DashboardMetricsDto = {
   inactivityHeadline: 'Alerta de Inactividad de Pacientes',
   inactivityCount: 2,
   inactivityPatients: [
-    { name: 'James Thornton', days: 7, condition: 'Hombro postoperatorio', initials: 'JT' },
-    { name: 'María Santos', days: 5, condition: 'Rodilla — ACL', initials: 'MS' },
+    {
+      patientId: 'p-001',
+      name: 'James Thornton',
+      days: 7,
+      condition: 'Hombro postoperatorio',
+      initials: 'JT',
+    },
+    { patientId: 'p-002', name: 'María Santos', days: 5, condition: 'Rodilla — ACL', initials: 'MS' },
   ],
   ringMetrics: [
     { label: 'Cumplimiento', value: '88%', frac: 0.88 },

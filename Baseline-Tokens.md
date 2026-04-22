@@ -133,3 +133,8 @@ Para cumplir el **AC-03** de la historia de exportación, las peticiones al endp
 - El backend debe validar el token y restringir la operación al **rol terapeuta** (y reglas adicionales que defina el producto).
 
 En la demo del front, `TherapistSessionService` expone un **token ficticio** y el texto completo de la cabecera solo para alinear la UI con ese contrato; no sustituye la autenticación real ni la firma del JWT.
+
+## 8. Inactividad (HU-03 / regla y Cron)
+
+- **Regla de negocio en UI (mock):** se considera inactivo al paciente cuando han pasado **más de 3 días** desde su **última sesión** registrada (el número mostrado es ese lapso en días).
+- **Cron / job diario:** la ejecución programada en servidor es **N/A** en esta demo; la UI solo lo menciona en copy o `title` / `aria-label` para alinear expectativas con el AC de backend.

@@ -13,6 +13,8 @@ export interface TemporalMetricPointDto {
 }
 
 export interface InactivityPatientDto {
+  /** Coincide con la ruta `/app/pacientes/:patientId` (mock). */
+  patientId: string;
   name: string;
   days: number;
   condition: string;

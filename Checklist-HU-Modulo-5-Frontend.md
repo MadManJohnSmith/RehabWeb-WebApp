@@ -62,17 +62,17 @@ Objetivo: definir **qué debe existir en interfaz y datos simulados** para aline
 
 ### Checklist (frontend + mocks)
 
-- [ ] **Banner en dashboard:** componente visible (p. ej. amarillo) con texto de alerta y contador o lista de afectados **mock** coherente con “> 3 días”.
-- [ ] **Enlace a seguimiento:** al menos un **hipervínculo** a ruta de alertas, perfil de paciente o lista filtrada por inactivos.
-- [ ] **Página de alertas:** tabla o lista que muestre pacientes inactivos con criterio **> 3 días** explicado en copy o en datos mock.
-- [ ] **Simulación de “job”:** opcional en front: comentario o tooltip “En producción: Cron diario” (no sustituye AC real de servidor).
+- [x] **Banner en dashboard:** componente visible (p. ej. amarillo) con texto de alerta y contador o lista de afectados **mock** coherente con “> 3 días”.
+- [x] **Enlace a seguimiento:** al menos un **hipervínculo** a ruta de alertas, perfil de paciente o lista filtrada por inactivos.
+- [x] **Página de alertas:** tabla o lista que muestre pacientes inactivos con criterio **> 3 días** explicado en copy o en datos mock.
+- [x] **Simulación de “job”:** opcional en front: comentario o tooltip “En producción: Cron diario” (no sustituye AC real de servidor).
 
 ### Revisión preliminar
 
 | AC | Notas rápidas |
 |----|-----------------|
-| AC-01 (Cron / > 3 días) | **N/A** *Cron*; **Parcial:** datos mock con días > 3 en dashboard y página de alertas. |
-| AC-02 (UI banner + enlace) | **Parcial:** banner y “Ver todos” a `/app/alertas`; **no** hay enlace directo por fila del banner al **perfil** de cada paciente (solo lista genérica en tarjetas). |
+| AC-01 (Cron / > 3 días) | **N/A** *Cron*; **Sí** en mock: valores >3, copy + tooltip; **§8** `Baseline-Tokens.md`. |
+| AC-02 (UI banner + enlace) | **Sí:** “Ver todos” + **cada tarjeta del banner** enlaza a `/app/pacientes/:id`; tabla de alertas con enlaces a perfil. |
 
 ---
 

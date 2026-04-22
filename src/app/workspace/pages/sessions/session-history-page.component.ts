@@ -1,125 +1,73 @@
 import { NgClass } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
+import { combineLatest, switchMap } from 'rxjs';
+import type { SessionDetailDto, SessionListRowDto } from '../../data/session-history.dto';
+import { SESSION_PATIENT_FILTER_OPTIONS } from '../../data/sessions-list.mock';
+import { SessionHistoryApiService } from '../../services/session-history-api.service';
 import { ToastService } from '../../../core/toast.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
-
-export type SessionStatus = 'Excelente' | 'Bueno' | 'Regular';
-
-export type SessionRow = {
-  id: string;
-  date: string;
-  patient: string;
-  program: string;
-  durationMin: number;
-  score: number;
-  status: SessionStatus;
-};
 
 @Component({
   selector: 'app-session-history-page',
   standalone: true,
-  imports: [NgClass, UiIconComponent],
+  imports: [NgClass, UiIconComponent, RouterLink],
   templateUrl: './session-history-page.component.html',
 })
 export class SessionHistoryPageComponent {
+  private readonly api = inject(SessionHistoryApiService);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly search = signal('');
-  protected readonly page = signal(1);
-  readonly pageSize = 5;
+  readonly search = signal('');
+  readonly page = signal(1);
+  readonly pageSize = signal(5);
+  readonly patientFilter = signal('');
 
-  private readonly allRows: SessionRow[] = [
-    {
-      id: 'SES-2048',
-      date: '2026-04-15',
-      patient: 'James Thornton',
-      program: 'ROM hombro — fase II',
-      durationMin: 42,
-      score: 91,
-      status: 'Excelente',
-    },
-    {
-      id: 'SES-2047',
-      date: '2026-04-15',
-      patient: 'María Santos',
-      program: 'ACL — fortalecimiento',
-      durationMin: 38,
-      score: 84,
-      status: 'Bueno',
-    },
-    {
-      id: 'SES-2046',
-      date: '2026-04-14',
-      patient: 'Lucía Fernández',
-      program: 'Tobillo — propiocepción',
-      durationMin: 33,
-      score: 76,
-      status: 'Bueno',
-    },
-    {
-      id: 'SES-2045',
-      date: '2026-04-14',
-      patient: 'Carlos Méndez',
-      program: 'Lumbar — estabilidad',
-      durationMin: 45,
-      score: 62,
-      status: 'Regular',
-    },
-    {
-      id: 'SES-2044',
-      date: '2026-04-13',
-      patient: 'James Thornton',
-      program: 'ROM hombro — fase II',
-      durationMin: 40,
-      score: 88,
-      status: 'Excelente',
-    },
-    {
-      id: 'SES-2043',
-      date: '2026-04-12',
-      patient: 'Ana Ruiz',
-      program: 'Cadera — movilidad',
-      durationMin: 36,
-      score: 71,
-      status: 'Bueno',
-    },
-    {
-      id: 'SES-2042',
-      date: '2026-04-11',
-      patient: 'María Santos',
-      program: 'ACL — fortalecimiento',
-      durationMin: 41,
-      score: 58,
-      status: 'Regular',
-    },
-  ];
+  readonly patientFilterOptions = SESSION_PATIENT_FILTER_OPTIONS;
+  readonly pageSizeOptions = [5, 10, 15] as const;
 
-  protected readonly filtered = computed(() => {
-    const q = this.search().trim().toLowerCase();
-    if (!q) {
-      return this.allRows;
-    }
-    return this.allRows.filter(
-      (r) =>
-        r.id.toLowerCase().includes(q) ||
-        r.patient.toLowerCase().includes(q) ||
-        r.program.toLowerCase().includes(q),
-    );
-  });
-
-  protected readonly totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.filtered().length / this.pageSize)),
+  readonly listResult = toSignal(
+    combineLatest([
+      toObservable(this.search),
+      toObservable(this.page),
+      toObservable(this.pageSize),
+      toObservable(this.patientFilter),
+    ]).pipe(
+      switchMap(([q, page, pageSize, patientId]) =>
+        this.api.searchSessions({
+          q,
+          page,
+          pageSize,
+          patientId: patientId || undefined,
+        }),
+      ),
+    ),
+    { initialValue: { rows: [] as SessionListRowDto[], total: 0 } },
   );
 
-  protected readonly pageRows = computed(() => {
-    const p = Math.min(this.page(), this.totalPages());
-    const start = (p - 1) * this.pageSize;
-    return this.filtered().slice(start, start + this.pageSize);
-  });
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.listResult().total / this.pageSize())),
+  );
+
+  readonly detailOpen = signal(false);
+  readonly detailLoading = signal(false);
+  readonly detail = signal<SessionDetailDto | null>(null);
 
   onSearchInput(ev: Event): void {
     const v = (ev.target as HTMLInputElement).value;
     this.search.set(v);
+    this.page.set(1);
+  }
+
+  onPatientFilterChange(ev: Event): void {
+    this.patientFilter.set((ev.target as HTMLSelectElement).value);
+    this.page.set(1);
+  }
+
+  setPageSize(n: number): void {
+    this.pageSize.set(n);
     this.page.set(1);
   }
 
@@ -128,7 +76,30 @@ export class SessionHistoryPageComponent {
     this.page.set(clamped);
   }
 
-  statusNgClass(row: SessionRow): Record<string, boolean> {
+  openDetail(row: SessionListRowDto): void {
+    this.detailOpen.set(true);
+    this.detailLoading.set(true);
+    this.detail.set(null);
+    this.api
+      .getSessionDetail(row.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (d) => {
+          this.detail.set(d);
+          this.detailLoading.set(false);
+        },
+        error: () => {
+          this.detailLoading.set(false);
+          this.toast.show('No se pudo cargar el detalle (revisa red o el archivo /mock/session-history.json).');
+        },
+      });
+  }
+
+  closeDetail(): void {
+    this.detailOpen.set(false);
+  }
+
+  statusNgClass(row: SessionListRowDto): Record<string, boolean> {
     return {
       'bg-pm-primary-soft text-pm-primary dark:bg-pm-primary-soft-dark dark:text-pm-primary':
         row.status === 'Excelente',
@@ -141,29 +112,14 @@ export class SessionHistoryPageComponent {
     return `${m} min`;
   }
 
-  viewReport(row: SessionRow): void {
-    this.toast.show(`Reporte completo (${row.id}): simulación sin conexión al servidor.`);
+  viewReport(row: SessionListRowDto): void {
+    this.toast.show(`Reporte técnico (${row.id}): simulación; en producción vendría del servidor.`);
   }
 
-  viewSession(row: SessionRow): void {
-    this.toast.show(`Detalle de sesión (${row.id}): simulación sin conexión al servidor.`);
-  }
-
-  viewReportFromPage(): void {
-    const row = this.pageRows()[0];
-    if (!row) {
-      this.toast.show('No hay sesiones en esta página.');
-      return;
+  viewReportFirstVisible(): void {
+    const r = this.listResult().rows[0];
+    if (r) {
+      this.viewReport(r);
     }
-    this.viewReport(row);
-  }
-
-  viewSessionFromPage(): void {
-    const row = this.pageRows()[0];
-    if (!row) {
-      this.toast.show('No hay sesiones en esta página.');
-      return;
-    }
-    this.viewSession(row);
   }
 }

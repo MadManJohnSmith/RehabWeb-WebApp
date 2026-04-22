@@ -1,0 +1,36 @@
+{
+  "details": {
+    "SES-2055": {
+      "id": "SES-2055",
+      "date": "2026-04-18",
+      "patient": "James Thornton",
+      "patientId": "p-001",
+      "program": "ROM hombro — fase II",
+      "durationMin": 44,
+      "score": 93,
+      "status": "Excelente",
+      "therapistNotes": "Buen rango articular; sin dolor referido en la última serie. Se acuerda progresión suave en flexión.",
+      "exercises": [
+        { "name": "Péndulo de Codman", "setsReps": "3×10", "notes": "Amplitud tolerada, sin compensaciones." },
+        { "name": "Flexión asistida con bastón", "setsReps": "3×8", "notes": "+5° respecto a la sesión previa." }
+      ],
+      "adherencePct": 92
+    },
+    "SES-2048": {
+      "id": "SES-2048",
+      "date": "2026-04-15",
+      "patient": "James Thornton",
+      "patientId": "p-001",
+      "program": "ROM hombro — fase II",
+      "durationMin": 42,
+      "score": 91,
+      "status": "Excelente",
+      "therapistNotes": "Mantiene adherencia al plan. VAS 2/10 al cierre.",
+      "exercises": [
+        { "name": "Abducción en plano escapular", "setsReps": "3×12", "notes": "Peso 1,5 kg." },
+        { "name": "Rotación externa con banda", "setsReps": "3×10", "notes": "Control excéntrico 3s." }
+      ],
+      "adherencePct": 88
+    }
+  }
+}

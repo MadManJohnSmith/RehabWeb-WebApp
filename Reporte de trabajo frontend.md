@@ -81,10 +81,26 @@ En **`/app/comparativa`** (menú **Comparativa de desempeño**) puede ver primer
 
 ---
 
-## HU-05 en adelante — _(pendiente)_
+## HU-05 — Historial técnico de sesiones
+
+### Resumen (qué hace el usuario)
+
+En **`/app/historial-sesiones`** ve una tabla **de la más reciente a la más antigua**, puede **buscar** por texto, **filtrar por paciente** y cambiar **cuántas filas por página** (5, 10 o 15) con botones de página. Al pulsar la **flecha** de una fila se abre un **panel lateral** con el detalle de esa sesión (notas, ejercicios, adherencia de demo); la información llega **por red simulada** sin recargar toda la página.
+
+### Detalle técnico
+
+| Tema | Entrega |
+|------|---------|
+| Mock lista | `session-history.dto.ts`, `sessions-list.mock.ts` (`satisfies` + orden explícito). |
+| API simulada | `SessionHistoryApiService`: `searchSessions` (`timer`), `getSessionDetail` (`HttpClient` + `delay` + JSON en `public/mock/session-history.json`). |
+| UI | `session-history-page.component.ts/html`: `toSignal` + `combineLatest` + `switchMap`, panel, `RouterLink` a ficha del paciente. |
+
+---
+
+## HU-06 en adelante — _(pendiente)_
 
 Mismo formato que HU-03.
 
 ---
 
-*Última actualización de contenido: HU-01 a HU-04 cubiertas en este reporte.*
+*Última actualización de contenido: HU-01 a HU-05 cubiertas en este reporte.*

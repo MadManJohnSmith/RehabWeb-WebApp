@@ -102,17 +102,17 @@ Objetivo: definir **qué debe existir en interfaz y datos simulados** para aline
 
 ### Checklist (frontend + mocks)
 
-- [ ] **Orden cronológico descendente** en la tabla principal (fecha más reciente arriba), verificable en datos mock.
-- [ ] **Paginación:** controles de página y tamaño de página (mock cliente o servidor simulado con `HttpClient` + `delay`).
-- [ ] **Detalle de sesión:** al elegir fila o botón, cargar panel/modal/ruta hija con `HttpClient.get` a **JSON estático** o `of()` RxJS sin `window.location.reload`.
-- [ ] **Búsqueda / filtros** opcionales alineados a la tabla enriquecida del brief.
+- [x] **Orden cronológico descendente** en la tabla principal (fecha más reciente arriba), verificable en datos mock.
+- [x] **Paginación:** controles de página y tamaño de página (mock cliente o servidor simulado con `HttpClient` + `delay`).
+- [x] **Detalle de sesión:** al elegir fila o botón, cargar panel/modal/ruta hija con `HttpClient.get` a **JSON estático** o `of()` RxJS sin `window.location.reload`.
+- [x] **Búsqueda / filtros** opcionales alineados a la tabla enriquecida del brief.
 
 ### Revisión preliminar
 
 | AC | Notas rápidas |
 |----|-----------------|
-| AC-01 (Orden + paginación) | **Parcial:** orden descendente en datos; paginación **solo en cliente** (`pageSize`), no “consultas paginadas” al servidor. |
-| AC-02 (AJAX detalle) | **No:** el detalle es toast simulado, no carga asíncrona de un fragmento de UI con datos de sesión. |
+| AC-01 (Orden + paginación) | **Sí:** mock ordenado + paginación cliente con `timer` simulado vía `SessionHistoryApiService.searchSessions`; selector de tamaño de página (5/10/15). |
+| AC-02 (AJAX detalle) | **Sí:** panel lateral; `HttpClient.get('/mock/session-history.json')` + `delay`; fallback de detalle desde fila si no hay entrada en JSON. |
 
 ---
 

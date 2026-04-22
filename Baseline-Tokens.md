@@ -143,3 +143,9 @@ En la demo del front, `TherapistSessionService` expone un **token ficticio** y e
 
 - La pantalla **`/app/comparativa`** muestra en texto la fórmula de **progreso relativo (P)** en función de **desempeño real (R)**, **meta inicial (M₀)** y **meta objetivo (M*)**, hasta incorporar la figura oficial del documento de historias.
 - Las series **meta** y **real** son mocks 0–100 compartidos con el **perfil de paciente** (`patient-detail.mock.ts`).
+
+## 10. Historial de sesiones (HU-05)
+
+- **`/app/historial-sesiones`:** tabla ordenada **descendente** por fecha (y desempate por ID de sesión).
+- **Paginación:** tamaño de página configurable (5/10/15) y navegación anterior/siguiente; el listado paginado se obtiene vía `SessionHistoryApiService.searchSessions` con latencia simulada (`timer`), sin recarga completa del documento.
+- **Detalle:** al pulsar la acción de una fila se abre un **panel**; el contenido se carga con **`HttpClient.get('/mock/session-history.json')`** (entradas explícitas para algunas sesiones + detalle sintético para el resto). No se usa `window.location.reload`.

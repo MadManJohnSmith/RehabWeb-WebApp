@@ -19,9 +19,13 @@ export type ShellNavItem = {
     :host {
       display: flex;
       flex-direction: column;
-      height: 100%;
-      min-height: 100%;
+      flex: 0 0 auto;
       align-self: stretch;
+      min-height: 0;
+      height: 100%;
+      max-height: 100%;
+      width: fit-content;
+      max-width: 100%;
     }
   `,
 })

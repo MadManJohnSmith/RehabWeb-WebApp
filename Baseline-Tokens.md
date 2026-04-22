@@ -120,3 +120,7 @@ Basado en las capturas de pantalla.
 | **Historial de sesiones** | Registro detallado de intervenciones. |
 | **Directorio de pacientes** | Gestión y monitoreo de perfiles clínicos. |
 | **Tablero de control** | Resumen general de evolución y alertas de inactividad. |
+
+## 6. Demo tablero (HU-01 / rendimiento percibido)
+
+En la demostración del **dashboard** (módulo 5), los datos del tablero provienen de un **mock acotado** (pocas semanas de serie temporal, ROM semanal y tabla corta de sesiones). No se ejecuta procesamiento pesado en el hilo principal más allá del dibujo SVG y estilos Tailwind. Cuando exista backend real, conviene exponer **agregados** y **paginación** en la API para conservar una carga de trabajo compatible con el criterio de aceptación de **menos de 3 segundos** en condiciones de red y datos reales.

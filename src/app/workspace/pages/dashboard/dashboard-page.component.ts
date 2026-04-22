@@ -1,11 +1,20 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
+import { DASHBOARD_METRICS_MOCK } from '../../data/dashboard-metrics.mock';
+import type { TemporalMetricPointDto } from '../../data/dashboard-metrics.dto';
+import { DashboardDataService } from '../../services/dashboard-data.service';
 
-type InactivityPatient = { name: string; days: number; condition: string; initials: string };
-type RingMetric = { label: string; value: string; frac: number };
-type SessionRow = { date: string; exercise: string; score: number };
+type ChartDotTrend = 'start' | 'improved' | 'regressed' | 'flat';
+
+type ChartDot = {
+  cx: number;
+  cy: number;
+  trend: ChartDotTrend;
+  tip: string;
+};
 
 @Component({
   selector: 'app-dashboard-page',
@@ -15,46 +24,43 @@ type SessionRow = { date: string; exercise: string; score: number };
 })
 export class DashboardPageComponent {
   private readonly toast = inject(ToastService);
+  private readonly dashboardData = inject(DashboardDataService);
 
-  readonly inactivityHeadline = 'Alerta de Inactividad de Pacientes';
-  readonly inactivityCount = 2;
-  readonly inactivityPatients: InactivityPatient[] = [
-    { name: 'James Thornton', days: 7, condition: 'Hombro postoperatorio', initials: 'JT' },
-    { name: 'María Santos', days: 5, condition: 'Rodilla — ACL', initials: 'MS' },
-  ];
-
-  readonly ringMetrics: RingMetric[] = [
-    { label: 'Cumplimiento', value: '88%', frac: 0.88 },
-    { label: 'Días activos', value: '12', frac: 0.72 },
-    { label: 'Duración', value: '41 min', frac: 0.81 },
-    { label: 'Dolor (VAS)', value: '3.2', frac: 0.64 },
-  ];
-
-  readonly lineMeta = [56, 57, 58, 59, 60, 61, 62, 63];
-  readonly lineReal = [58, 60, 55, 62, 64, 61, 68, 72];
+  /** Vista reactiva del mock tipo respuesta API (misma referencia hasta primer tick). */
+  readonly vm = toSignal(this.dashboardData.getDashboardMetrics(), {
+    initialValue: DASHBOARD_METRICS_MOCK,
+  });
 
   protected readonly chartTooltip = signal<{ x: number; y: number; label: string } | null>(null);
 
-  readonly recentSessions: SessionRow[] = [
-    { date: '2026-04-15', exercise: 'Flexión hombro asistida', score: 88 },
-    { date: '2026-04-15', exercise: 'Estabilización monopodal', score: 81 },
-    { date: '2026-04-14', exercise: 'Movilidad tobillo', score: 76 },
-    { date: '2026-04-14', exercise: 'Core — plancha lateral', score: 84 },
-    { date: '2026-04-13', exercise: 'Rodilla — extensión controlada', score: 79 },
-  ];
+  readonly ringCirc = 2 * Math.PI * 38;
 
-  readonly reviewToday = ['James Thornton', 'María Santos', 'Lucía Fernández'];
+  private readonly boundsValues = computed(() => {
+    const s = this.vm().temporalSeries;
+    return s.flatMap((p) => [p.metaValue, p.observedValue]);
+  });
 
-  readonly reportSnippets = [
-    { title: 'Informe semanal cohorte A', date: '2026-04-14' },
-    { title: 'Comparativa ROM — hombro', date: '2026-04-12' },
-  ];
-
-  protected readonly chartDots = computed(() =>
-    this.dotsFromSeries(this.lineMeta, this.lineReal, 420, 200, 20),
+  readonly lineMetaPoints = computed(() =>
+    this.linePointsFor(
+      this.vm().temporalSeries.map((p) => p.metaValue),
+      this.boundsValues(),
+    ),
   );
 
-  readonly ringCirc = 2 * Math.PI * 38;
+  readonly lineRealPoints = computed(() =>
+    this.linePointsFor(
+      this.vm().temporalSeries.map((p) => p.observedValue),
+      this.boundsValues(),
+    ),
+  );
+
+  readonly chartDots = computed(() =>
+    this.dotsNvNMinus1(this.vm().temporalSeries, 420, 200, 20),
+  );
+
+  readonly romMaxDegrees = computed(() =>
+    Math.max(1, ...this.vm().romByWeek.map((r) => r.romDegrees)),
+  );
 
   showPointTip(ev: MouseEvent, label: string): void {
     const svg = (ev.currentTarget as SVGElement).closest('svg');
@@ -73,14 +79,23 @@ export class DashboardPageComponent {
     this.chartTooltip.set(null);
   }
 
-  linePointsFor(values: number[], width = 420, height = 200, pad = 20): string {
-    const all = [...this.lineMeta, ...this.lineReal];
+  openReportSnippet(title: string): void {
+    this.toast.show(`Resumen «${title}»: la descarga se enlazará al módulo de reportes en el servidor.`);
+  }
+
+  private linePointsFor(
+    values: number[],
+    combinedForBounds: number[],
+    width = 420,
+    height = 200,
+    pad = 20,
+  ): string {
     const n = values.length;
     if (n < 2) {
       return '';
     }
-    const min = Math.min(...all) - 4;
-    const max = Math.max(...all) + 4;
+    const min = Math.min(...combinedForBounds) - 4;
+    const max = Math.max(...combinedForBounds) + 4;
     const span = max - min || 1;
     return values
       .map((v, i) => {
@@ -91,30 +106,57 @@ export class DashboardPageComponent {
       .join(' ');
   }
 
-  openReportSnippet(title: string): void {
-    this.toast.show(`Resumen «${title}»: la descarga se enlazará al módulo de reportes en el servidor.`);
-  }
-
-  private dotsFromSeries(
-    meta: number[],
-    real: number[],
+  private dotsNvNMinus1(
+    series: TemporalMetricPointDto[],
     width: number,
     height: number,
     pad: number,
-  ): { cx: number; cy: number; meta: number; real: number; regression: boolean }[] {
-    const combined = [...meta, ...real];
-    const n = real.length;
+  ): ChartDot[] {
+    const observed = series.map((p) => p.observedValue);
+    const combined = series.flatMap((p) => [p.metaValue, p.observedValue]);
+    const n = observed.length;
     if (n < 2) {
       return [];
     }
     const min = Math.min(...combined) - 4;
     const max = Math.max(...combined) + 4;
     const span = max - min || 1;
-    return real.map((v, i) => {
+
+    return observed.map((v, i) => {
       const x = pad + (i / (n - 1)) * (width - pad * 2);
       const y = height - pad - ((v - min) / span) * (height - pad * 2);
-      const m = meta[i] ?? v;
-      return { cx: x, cy: y, meta: m, real: v, regression: v < m };
+      const prev = i === 0 ? null : observed[i - 1];
+      let trend: ChartDotTrend;
+      if (i === 0) {
+        trend = 'start';
+      } else if (prev !== null && v > prev) {
+        trend = 'improved';
+      } else if (prev !== null && v < prev) {
+        trend = 'regressed';
+      } else {
+        trend = 'flat';
+      }
+
+      const wk = series[i]?.weekLabel ?? `Sem ${i + 1}`;
+      const meta = series[i]?.metaValue ?? v;
+      const trendEs =
+        trend === 'start'
+          ? 'sin periodo previo'
+          : trend === 'improved'
+            ? 'mejora vs periodo anterior'
+            : trend === 'regressed'
+              ? 'regresión vs periodo anterior'
+              : 'sin cambio vs periodo anterior';
+
+      let tip: string;
+      if (prev === null) {
+        tip = `${wk}: observado ${v} pts · meta ${meta} · ${trendEs}`;
+      } else {
+        const delta = Math.round((v - prev + Number.EPSILON) * 100) / 100;
+        tip = `${wk}: observado ${v} pts · anterior ${prev} (Δ ${delta >= 0 ? '+' : ''}${delta}) · meta ${meta} · ${trendEs}`;
+      }
+
+      return { cx: x, cy: y, trend, tip };
     });
   }
 }

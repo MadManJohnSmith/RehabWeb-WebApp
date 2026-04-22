@@ -1,4 +1,6 @@
-<div class="relative flex min-h-dvh bg-pm-canvas dark:bg-pm-canvas-dark">
+<div
+  class="relative flex h-dvh min-h-0 max-h-dvh w-full overflow-hidden bg-pm-canvas dark:bg-pm-canvas-dark"
+>
   @if (mobileMenuOpen()) {
     <button
       type="button"
@@ -9,15 +11,17 @@
   }
 
   <app-shell-sidebar
-    class="z-40 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:h-dvh max-md:shadow-pm-md max-md:transition-transform md:static md:h-full md:min-h-dvh md:self-stretch md:translate-x-0 dark:max-md:shadow-pm-md-dark"
+    class="z-40 shrink-0 grow-0 basis-auto max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:h-dvh max-md:shadow-pm-md max-md:transition-transform md:static md:h-full md:min-h-dvh md:self-stretch md:translate-x-0 dark:max-md:shadow-pm-md-dark"
     [class.max-md:-translate-x-full]="!mobileMenuOpen()"
     [class.max-md:translate-x-0]="mobileMenuOpen()"
     (closeMobile)="closeMobileMenu()"
   />
 
-  <div class="flex min-w-0 flex-1 flex-col">
+  <div class="flex min-w-0 flex-1 flex-col md:min-w-0">
     <app-shell-top-bar [title]="pageTitle()" (menuToggle)="toggleMobileMenu()" />
-    <div class="flex-1 overflow-auto px-4 pb-6 pt-5 md:px-6 md:pb-8 md:pt-7">
+    <div
+      class="min-h-0 w-full min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain px-4 pb-6 pt-5 md:px-6 md:pb-8 md:pt-7"
+    >
       <router-outlet />
     </div>
   </div>

@@ -1,4 +1,4 @@
-<div class="mx-auto max-w-4xl space-y-6">
+<div class="mx-auto w-full max-w-4xl space-y-6">
   <section
     class="rounded-card border border-pm-border bg-pm-surface p-6 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
   >
@@ -7,14 +7,32 @@
     </p>
     <h1 class="mt-2 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Exportación de datos clínicos</h1>
     <p class="mt-2 max-w-2xl text-sm text-pm-muted dark:text-pm-muted-dark">
-      Genera reportes técnicos y comparativos para la historia clínica. Los archivos se producirán en el servidor
-      cuando el servidor esté disponible.
+      Genera reportes técnicos para expediente o distribución interna. En esta demo los filtros son obligatorios, la
+      descarga de Excel es un archivo simulado (CSV) y el PDF solo muestra el flujo de confirmación hasta existir API
+      real.
     </p>
+
+    <div
+      class="mt-6 rounded-control border border-pm-border bg-pm-canvas/80 p-4 dark:border-pm-border-dark dark:bg-pm-canvas-dark/50"
+      role="region"
+      aria-label="Sesión de terapeuta simulada"
+    >
+      <p class="text-xs font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
+        Sesión terapeuta (mock — HU-02 AC-03)
+      </p>
+      <p class="mt-1 text-xs text-pm-muted dark:text-pm-muted-dark">
+        Cuando exista login, las peticiones HTTP de exportación usarán una cabecera como la siguiente (rol terapeuta
+        validado en servidor).
+      </p>
+      <pre
+        class="mt-2 max-h-24 overflow-auto rounded-control border border-pm-border bg-pm-surface px-3 py-2 font-mono text-[11px] leading-relaxed text-pm-ink dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
+      >Authorization: {{ therapistSession.authorizationHeader() }}</pre>
+    </div>
 
     <div class="mt-8 grid gap-5 md:grid-cols-2">
       <div class="md:col-span-2">
         <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
-          Selección de paciente
+          Paciente (obligatorio)
         </label>
         <select
           name="pacienteId"
@@ -28,7 +46,7 @@
       </div>
       <div>
         <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
-          Desde
+          Desde (obligatorio)
         </label>
         <input
           name="desde"
@@ -39,7 +57,7 @@
       </div>
       <div>
         <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
-          Hasta
+          Hasta (obligatorio)
         </label>
         <input
           name="hasta"
@@ -50,19 +68,27 @@
       </div>
     </div>
 
+    @if (!isFormValid()) {
+      <p class="mt-4 text-sm text-pm-coral dark:text-pm-coral">
+        Completa paciente y rango de fechas válido para habilitar la exportación.
+      </p>
+    }
+
     <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-stretch">
       <button
         type="button"
+        [disabled]="!isFormValid()"
         (click)="export('excel')"
-        class="inline-flex flex-1 items-center justify-center gap-3 rounded-cta bg-pm-primary px-6 py-4 text-base font-semibold text-white shadow-pm-md transition hover:bg-pm-primary-hover dark:shadow-pm-md-dark"
+        class="inline-flex flex-1 items-center justify-center gap-3 rounded-cta bg-pm-primary px-6 py-4 text-base font-semibold text-white shadow-pm-md transition hover:bg-pm-primary-hover disabled:pointer-events-none disabled:opacity-45 dark:shadow-pm-md-dark"
       >
         <app-ui-icon name="file-spreadsheet" [size]="22" svgClass="text-white" />
         Descargar Excel
       </button>
       <button
         type="button"
+        [disabled]="!isFormValid()"
         (click)="export('pdf')"
-        class="inline-flex flex-1 items-center justify-center gap-3 rounded-cta border-2 border-pm-coral bg-pm-surface px-6 py-4 text-base font-semibold text-pm-coral shadow-pm-sm transition hover:bg-pm-danger-bg dark:border-pm-coral dark:bg-pm-surface-dark dark:text-pm-coral dark:hover:bg-pm-danger-bg-dark"
+        class="inline-flex flex-1 items-center justify-center gap-3 rounded-cta border-2 border-pm-coral bg-pm-surface px-6 py-4 text-base font-semibold text-pm-coral shadow-pm-sm transition hover:bg-pm-danger-bg disabled:pointer-events-none disabled:opacity-45 dark:border-pm-coral dark:bg-pm-surface-dark dark:text-pm-coral dark:hover:bg-pm-danger-bg-dark"
       >
         <app-ui-icon name="download" [size]="22" />
         Descargar PDF
@@ -70,7 +96,7 @@
     </div>
 
     @if (estado()) {
-      <p class="mt-6 text-xs text-pm-muted dark:text-pm-muted-dark">{{ estado() }}</p>
+      <p class="mt-6 text-xs leading-relaxed text-pm-muted dark:text-pm-muted-dark">{{ estado() }}</p>
     }
   </section>
 </div>

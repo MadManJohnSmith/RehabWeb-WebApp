@@ -124,3 +124,12 @@ Basado en las capturas de pantalla.
 ## 6. Demo tablero (HU-01 / rendimiento percibido)
 
 En la demostración del **dashboard** (módulo 5), los datos del tablero provienen de un **mock acotado** (pocas semanas de serie temporal, ROM semanal y tabla corta de sesiones). No se ejecuta procesamiento pesado en el hilo principal más allá del dibujo SVG y estilos Tailwind. Cuando exista backend real, conviene exponer **agregados** y **paginación** en la API para conservar una carga de trabajo compatible con el criterio de aceptación de **menos de 3 segundos** en condiciones de red y datos reales.
+
+## 7. Exportación clínica (HU-02 / JWT terapeuta)
+
+Para cumplir el **AC-03** de la historia de exportación, las peticiones al endpoint de generación de reportes deben incluir:
+
+- Cabecera **`Authorization`**: esquema **`Bearer`** seguido del **JWT** emitido tras el login.
+- El backend debe validar el token y restringir la operación al **rol terapeuta** (y reglas adicionales que defina el producto).
+
+En la demo del front, `TherapistSessionService` expone un **token ficticio** y el texto completo de la cabecera solo para alinear la UI con ese contrato; no sustituye la autenticación real ni la firma del JWT.

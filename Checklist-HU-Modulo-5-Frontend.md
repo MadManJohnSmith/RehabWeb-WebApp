@@ -41,18 +41,18 @@ Objetivo: definir **qué debe existir en interfaz y datos simulados** para aline
 
 ### Checklist (frontend + mocks)
 
-- [ ] **UI de exportación:** botones o flujo claro “Descargar Excel” / “Descargar PDF” (aunque solo disparen descarga simulada o toast).
-- [ ] **Filtros obligatorios:** selector de paciente (ID o lista) + **rango de fechas** enlazados al estado del formulario (mock o `ngModel`).
-- [ ] **Feedback post-acción:** mensaje de éxito/error simulado (toast o banner) sin asumir binarios reales.
-- [ ] **Rol terapeuta (JWT):** en front solo se puede **preparar** envío de `Authorization` en `HttpClient` cuando exista login; checklist: documentar header esperado o guard mock de “sesión terapeuta”.
+- [x] **UI de exportación:** botones o flujo claro “Descargar Excel” / “Descargar PDF” (aunque solo disparen descarga simulada o toast).
+- [x] **Filtros obligatorios:** selector de paciente (ID o lista) + **rango de fechas** enlazados al estado del formulario (mock o `ngModel`).
+- [x] **Feedback post-acción:** mensaje de éxito/error simulado (toast o banner) sin asumir binarios reales.
+- [x] **Rol terapeuta (JWT):** en front solo se puede **preparar** envío de `Authorization` en `HttpClient` cuando exista login; checklist: documentar header esperado o guard mock de “sesión terapeuta”.
 
 ### Revisión preliminar
 
 | AC | Notas rápidas |
 |----|-----------------|
-| AC-01 (PDF/Excel backend) | **N/A** en servidor; **Parcial** en UI: botones y mensajes simulados existen. |
-| AC-02 (Filtros) | **Sí:** paciente + fechas en pantalla de reportes. |
-| AC-03 (JWT rol terapeuta) | **No** en integración real; login es demo sin JWT. |
+| AC-01 (PDF/Excel backend) | **N/A** en servidor; **Sí** en demo UI: Excel → CSV simulado + toast; PDF → toast (sin binario). |
+| AC-02 (Filtros) | **Sí:** paciente obligatorio + rango de fechas con validación y botones deshabilitados si el formulario es inválido. |
+| AC-03 (JWT rol terapeuta) | **Parcial:** mock `TherapistSessionService` + cabecera en pantalla y §7 en `Baseline-Tokens.md`; integración real pendiente de login/JWT. |
 
 ---
 

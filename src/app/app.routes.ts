@@ -37,6 +37,15 @@ export const routes: Routes = [
       (m) => m.CalendarioComponent
     ),
 },
+{
+  path: 'clinico/expediente',
+  loadComponent: () =>
+    import('./screens/clinico/expediente/expediente').then(
+      (m) => m.ExpedienteComponent
+    ),
+},  
 
   { path: '**', redirectTo: 'landing' },
+
+
 ];

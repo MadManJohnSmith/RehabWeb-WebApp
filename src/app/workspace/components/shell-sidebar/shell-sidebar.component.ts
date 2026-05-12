@@ -1,5 +1,6 @@
-import { Component, output, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject, output, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../../core/auth.service';
 import { UiIconComponent, UiIconName } from '../ui-icon/ui-icon.component';
 
 export type ShellNavItem = {
@@ -30,6 +31,9 @@ export type ShellNavItem = {
   `,
 })
 export class ShellSidebarComponent {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
   readonly closeMobile = output<void>();
 
   /** Navegación principal alineada al brief de producto (Figma). */
@@ -50,5 +54,12 @@ export class ShellSidebarComponent {
 
   onNavigate(): void {
     this.closeMobile.emit();
+  }
+
+  logout(): void {
+    this.auth.logout().subscribe({
+      next: () => void this.router.navigateByUrl('/login'),
+      error: () => void this.router.navigateByUrl('/login'),
+    });
   }
 }

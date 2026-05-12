@@ -1,10 +1,15 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, inject, PLATFORM_ID, signal } from '@angular/core';
+import { afterNextRender, Component, inject, PLATFORM_ID, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { ToastService } from '../../../core/toast.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
-import type { ClinicalExportFiltersDto } from '../../data/clinical-export-request.dto';
-import { TherapistSessionService } from '../../services/therapist-session.service';
+import {
+  MAX_CLINICAL_EXPORT_RANGE_DAYS,
+  type ClinicalExportApiRequestDto,
+} from '../../data/clinical-export-request.dto';
+import { ClinicalExportApiService } from '../../services/clinical-export-api.service';
+import { PatientsApiService } from '../../services/patients-api.service';
 
 @Component({
   selector: 'app-reports-page',
@@ -15,51 +20,77 @@ import { TherapistSessionService } from '../../services/therapist-session.servic
 export class ReportsPageComponent {
   private readonly toast = inject(ToastService);
   private readonly platformId = inject(PLATFORM_ID);
-  protected readonly therapistSession = inject(TherapistSessionService);
+  private readonly clinicalExport = inject(ClinicalExportApiService);
+  private readonly patientsApi = inject(PatientsApiService);
 
   pacienteId = '';
   desde = '2026-01-01';
   hasta = '2026-04-16';
   protected readonly estado = signal<string>('');
+  protected readonly exportBusy = signal(false);
+  readonly maxExportRangeDays = MAX_CLINICAL_EXPORT_RANGE_DAYS;
 
-  readonly patientOptions = [
+  readonly patientOptions = signal<{ id: string; label: string }[]>([
     { id: '', label: 'Seleccione un paciente…' },
-    { id: 'p-001', label: 'James Thornton' },
-    { id: 'p-002', label: 'María Santos' },
-    { id: 'p-003', label: 'Lucía Fernández' },
-    { id: 'p-004', label: 'Carlos Méndez' },
-  ];
+  ]);
 
-  export(kind: 'excel' | 'pdf'): void {
+  constructor() {
+    afterNextRender(() => {
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
+      this.patientsApi.list({ includeDeleted: false, page_size: 50 }).subscribe({
+        next: (res) => {
+          const head = { id: '', label: 'Seleccione un paciente…' };
+          const rest = res.results.map((r) => ({
+            id: String(r.patientId),
+            label: r.fullName,
+          }));
+          this.patientOptions.set([head, ...rest]);
+        },
+        error: () => {
+          /* se mantiene solo la opción placeholder */
+        },
+      });
+    });
+  }
+
+  export(kind: 'xlsx' | 'pdf'): void {
     const err = this.validateFilters();
     if (err) {
       this.estado.set('');
       this.toast.show(`No se puede exportar: ${err}`);
       return;
     }
-
-    const payload: ClinicalExportFiltersDto = {
-      patientId: this.pacienteId,
-      dateFrom: this.desde,
-      dateTo: this.hasta,
-    };
-
-    const label = kind === 'excel' ? 'Excel' : 'PDF';
-    this.estado.set(
-      `Última solicitud (${label}): paciente ${payload.patientId}, ${payload.dateFrom} → ${payload.dateTo}. Cabecera Authorization preparada (mock terapeuta).`,
-    );
-
-    if (kind === 'excel') {
-      this.downloadMockSpreadsheet(payload);
-      this.toast.show(
-        'Excel (simulación): se descargó un CSV de demostración. Con el servidor activo se enviaría el mismo filtro por HTTP con JWT de terapeuta.',
-      );
+    if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    this.toast.show(
-      'PDF (simulación): la generación binaria ocurrirá en el servidor. La petición llevaría el encabezado Authorization (Bearer + JWT de terapeuta) y los filtros acordados al contrato de API.',
-    );
+    const patientId = Number(this.pacienteId);
+    const body: ClinicalExportApiRequestDto = {
+      patientId,
+      dateFrom: this.desde,
+      dateTo: this.hasta,
+      format: kind === 'pdf' ? 'pdf' : 'xlsx',
+    };
+
+    const label = kind === 'pdf' ? 'PDF' : 'XLSX';
+    this.exportBusy.set(true);
+    this.clinicalExport
+      .requestExport(body)
+      .pipe(finalize(() => this.exportBusy.set(false)))
+      .subscribe({
+        next: ({ blob, filename }) => {
+          this.triggerFileDownload(blob, filename);
+          this.estado.set(`Última descarga (${label}): ${filename}`);
+          this.toast.show(`Informe listo: ${filename}`);
+        },
+        error: (e: unknown) => {
+          const msg = e instanceof Error ? e.message : 'Error al exportar.';
+          this.estado.set('');
+          this.toast.show(msg);
+        },
+      });
   }
 
   isFormValid(): boolean {
@@ -70,34 +101,40 @@ export class ReportsPageComponent {
     if (!this.pacienteId?.trim()) {
       return 'debe elegir un paciente.';
     }
+    const patientId = Number(this.pacienteId);
+    if (!Number.isInteger(patientId) || patientId < 1) {
+      return 'el paciente seleccionado no es válido.';
+    }
     if (!this.desde?.trim() || !this.hasta?.trim()) {
       return 'indique fecha desde y hasta.';
     }
-    const from = new Date(this.desde);
-    const to = new Date(this.hasta);
-    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) {
-      return 'las fechas no son válidas.';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(this.desde) || !/^\d{4}-\d{2}-\d{2}$/.test(this.hasta)) {
+      return 'use fechas en formato AAAA-MM-DD.';
     }
-    if (from > to) {
+    const diffDays = this.calendarDiffDays(this.desde, this.hasta);
+    if (diffDays < 0) {
       return '«Desde» no puede ser posterior a «Hasta».';
+    }
+    if (diffDays > MAX_CLINICAL_EXPORT_RANGE_DAYS) {
+      return `el rango no puede superar ${MAX_CLINICAL_EXPORT_RANGE_DAYS} días.`;
     }
     return null;
   }
 
-  private downloadMockSpreadsheet(filters: ClinicalExportFiltersDto): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-    const name =
-      this.patientOptions.find((p) => p.id === filters.patientId)?.label?.replace(/\s+/g, '_') ?? 'paciente';
-    const header = 'patient_id,date_from,date_to,therapist_role,generated_at_utc';
-    const row = `${filters.patientId},${filters.dateFrom},${filters.dateTo},${this.therapistSession.demoRole()},${new Date().toISOString()}`;
-    const csv = `${header}\n${row}\n`;
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  /** Diferencia en días entre dos fechas calendario (UTC), coherente con el validador del API. */
+  private calendarDiffDays(fromYmd: string, toYmd: string): number {
+    const [y0, m0, d0] = fromYmd.split('-').map(Number);
+    const [y1, m1, d1] = toYmd.split('-').map(Number);
+    const t0 = Date.UTC(y0, m0 - 1, d0);
+    const t1 = Date.UTC(y1, m1 - 1, d1);
+    return Math.round((t1 - t0) / 86400000);
+  }
+
+  private triggerFileDownload(blob: Blob, filename: string): void {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `reporte_clinico_demo_${name}_${filters.dateFrom}_${filters.dateTo}.csv`;
+    a.download = filename;
     a.rel = 'noopener';
     a.click();
     URL.revokeObjectURL(url);

@@ -5,8 +5,8 @@
       <h1 class="mt-1 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Historial de sesiones</h1>
       <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
         Listado en <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">orden cronológico descendente</span>
-        (más reciente arriba). Paginación y filtros en cliente con latencia simulada; el detalle de una sesión se carga
-        por <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">HttpClient</span> sin recargar la página.
+        desde <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">GET /api/v1/sessions/</span> (paginación y filtros en servidor). El detalle abre
+        <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">GET /api/v1/sessions/&lt;id&gt;/</span> sin recargar la página.
       </p>
     </div>
     <div class="flex w-full flex-col gap-2 sm:max-w-md sm:flex-row">
@@ -28,7 +28,7 @@
         (change)="onPatientFilterChange($event)"
         aria-label="Filtrar por paciente"
       >
-        @for (opt of patientFilterOptions; track opt.id) {
+        @for (opt of patientFilterOptions(); track opt.id) {
           <option [value]="opt.id">{{ opt.label }}</option>
         }
       </select>
@@ -252,7 +252,7 @@
               <dd class="mt-0.5 font-semibold text-pm-primary">{{ d.score }}</dd>
             </div>
             <div>
-              <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Adherencia (demo)</dt>
+              <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Adherencia</dt>
               <dd class="mt-0.5 font-medium">{{ d.adherencePct }}%</dd>
             </div>
           </div>
@@ -265,7 +265,7 @@
           <div>
             <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Ejercicios</dt>
             <dd class="mt-2 space-y-2">
-              @for (ex of d.exercises; track ex.name + ex.setsReps) {
+              @for (ex of d.exercises; track $index) {
                 <div class="rounded-control border border-pm-border px-3 py-2 dark:border-pm-border-dark">
                   <p class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ ex.name }}</p>
                   <p class="text-xs text-pm-muted dark:text-pm-muted-dark">{{ ex.setsReps }}</p>

@@ -2,15 +2,18 @@
   <div>
     <h2 class="text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">Alertas de inactividad</h2>
     <p class="mt-1 text-sm font-normal text-pm-muted dark:text-pm-muted-dark">
-      Listado simulado: solo pacientes con <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">más de 3 días</span>
-      sin actividad registrada desde la última sesión.
+      Pacientes con más de
+      <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ vm().thresholdDays }} días</span>
+      sin sesión registrada (o sin ninguna sesión). Datos desde
+      <code class="rounded bg-pm-canvas px-1 py-0.5 text-xs dark:bg-pm-canvas-dark">GET /api/v1/inactivity-alerts/</code>
+      con respaldo mock si no hay API.
       <button
         type="button"
         class="ml-1 inline align-baseline text-sm font-semibold text-pm-primary underline decoration-pm-primary/50 underline-offset-2 hover:decoration-pm-primary"
-        [attr.title]="cronHint"
-        [attr.aria-label]="cronHint"
+        [attr.title]="dataHint"
+        [attr.aria-label]="dataHint"
       >
-        Cron en servidor (demo)
+        Cómo se calcula
       </button>
     </p>
   </div>
@@ -40,7 +43,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-pm-border dark:divide-pm-border-dark">
-          @for (row of filas(); track row.alertId) {
+          @for (row of vm().alerts; track row.alertId) {
             <tr>
               <td class="px-4 py-3">
                 @if (row.priority === 'alta') {
@@ -64,7 +67,14 @@
                 <span class="mt-0.5 block text-xs text-pm-muted dark:text-pm-muted-dark">{{ row.patientId }}</span>
               </td>
               <td class="px-4 py-3 font-mono text-sm text-pm-ink dark:text-pm-ink-on-dark">
-                {{ row.daysSinceActivity }} <span class="text-xs font-sans text-pm-muted dark:text-pm-muted-dark">(> 3)</span>
+                @if (row.daysSinceActivity === null) {
+                  <span class="font-sans text-pm-muted dark:text-pm-muted-dark">Sin sesiones</span>
+                } @else {
+                  {{ row.daysSinceActivity }}
+                  <span class="text-xs font-sans text-pm-muted dark:text-pm-muted-dark"
+                    >(&gt; {{ vm().thresholdDays }})</span
+                  >
+                }
               </td>
               <td class="px-4 py-3 text-right">
                 <div class="flex flex-wrap justify-end gap-2">
@@ -99,8 +109,8 @@
       </table>
     </div>
     <p class="border-t border-pm-border px-4 py-3 text-xs text-pm-muted dark:border-pm-border-dark dark:text-pm-muted-dark">
-      Criterio clínico operativo: inactividad cuando los días desde la última sesión superan 3 (los datos son mock hasta
-      conectar API y Cron).
+      Inactivos según el API: {{ vm().inactiveCount }} paciente(s). Prioridad en pantalla: alta si no hay historial de
+      sesión o ≥7 días desde la última; si no, media.
     </p>
   </div>
 </div>

@@ -10,8 +10,8 @@
           Acceso institucional al entorno clínico digital
         </p>
         <p class="mt-4 max-w-md text-sm font-normal leading-relaxed text-pm-muted-dark">
-          Interfaz de demostración. La autenticación real se integrará con el servidor en una fase
-          posterior.
+          Acceso con las credenciales del API RehabWeb (Django). El servidor debe estar en marcha en
+          <span class="font-mono text-pm-primary">127.0.0.1:8000</span>.
         </p>
       </div>
     </div>
@@ -45,8 +45,8 @@
           <div>
             <label
               class="mb-1.5 block text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark"
-              for="login-email"
-              >Correo electrónico</label
+              for="login-username"
+              >Usuario o correo electrónico</label
             >
             <div class="relative">
               <span
@@ -55,13 +55,13 @@
                 <app-ui-icon name="mail" [size]="18" />
               </span>
               <input
-                id="login-email"
-                name="email"
-                type="email"
+                id="login-username"
+                name="username"
+                type="text"
                 autocomplete="username"
-                [(ngModel)]="email"
+                [(ngModel)]="username"
                 class="w-full rounded-control border border-pm-border bg-pm-surface py-2.5 pl-10 pr-3 text-sm font-normal text-pm-ink outline-none ring-pm-primary transition focus:ring-2 dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
-                placeholder="nombre@institución.gob.mx"
+                placeholder="usuario Django o correo si aplica"
               />
             </div>
           </div>
@@ -92,17 +92,22 @@
 
           <button
             type="submit"
-            class="rounded-control bg-pm-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-pm-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pm-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-pm-canvas-dark"
+            [disabled]="submitting()"
+            class="rounded-control bg-pm-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-pm-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-pm-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-pm-canvas-dark"
           >
-            Entrar (demostración)
+            @if (submitting()) {
+              Entrando…
+            } @else {
+              Entrar
+            }
           </button>
         </form>
 
         <p class="mt-8 text-center text-xs font-normal text-pm-muted dark:text-pm-muted-dark">
-          <a routerLink="/app/dashboard" class="text-pm-primary hover:underline"
-            >Continuar al tablero sin autenticación</a
+          ¿No tienes cuenta?
+          <span class="text-pm-muted dark:text-pm-muted-dark"
+            >Crea un usuario en el admin de Django o sigue el README del API.</span
           >
-          — solo para desarrollo de la interfaz.
         </p>
       </div>
     </div>

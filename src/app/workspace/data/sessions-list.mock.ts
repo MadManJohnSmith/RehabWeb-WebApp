@@ -1,6 +1,9 @@
 import type { SessionListRowDto } from './session-history.dto';
 
-/** Orden cronológico descendente (fecha, luego ID). Datos demo HU-05. */
+/**
+ * Lista demo local — el historial en `/app/historial-sesiones` ya consume el API.
+ * Orden cronológico descendente (fecha, luego ID). Se conserva por referencia o tests manuales.
+ */
 const SESSION_LIST_RAW = [
   {
     id: 'SES-2055',

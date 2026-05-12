@@ -30,7 +30,7 @@ export class DashboardPageComponent {
   readonly inactivityCronHint =
     'En producción: un Cron en el servidor revisa cada día las últimas sesiones y marca inactividad cuando pasan más de 3 días sin registro.';
 
-  /** Vista reactiva del mock tipo respuesta API (misma referencia hasta primer tick). */
+  /** Datos del tablero vía `GET /api/v1/me/dashboard/` (mapeados a la forma del template). */
   readonly vm = toSignal(this.dashboardData.getDashboardMetrics(), {
     initialValue: DASHBOARD_METRICS_MOCK,
   });

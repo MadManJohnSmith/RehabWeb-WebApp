@@ -1,10 +1,10 @@
-import { NgClass } from '@angular/common';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { isPlatformBrowser, NgClass } from '@angular/common';
+import { afterNextRender, Component, DestroyRef, computed, inject, PLATFORM_ID, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
 import type { SessionDetailDto, SessionListRowDto } from '../../data/session-history.dto';
-import { SESSION_PATIENT_FILTER_OPTIONS } from '../../data/sessions-list.mock';
+import { PatientsApiService } from '../../services/patients-api.service';
 import { SessionHistoryApiService } from '../../services/session-history-api.service';
 import { ToastService } from '../../../core/toast.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
@@ -24,8 +24,10 @@ type SessionListVm = {
 })
 export class SessionHistoryPageComponent {
   private readonly api = inject(SessionHistoryApiService);
+  private readonly patientsApi = inject(PatientsApiService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly platformId = inject(PLATFORM_ID);
 
   readonly search = signal('');
   readonly page = signal(1);
@@ -33,7 +35,10 @@ export class SessionHistoryPageComponent {
   readonly patientFilter = signal('');
   readonly refreshTick = signal(0);
 
-  readonly patientFilterOptions = SESSION_PATIENT_FILTER_OPTIONS;
+  readonly patientFilterOptions = signal<{ id: string; label: string }[]>([
+    { id: '', label: 'Todos los pacientes' },
+  ]);
+
   readonly pageSizeOptions = [5, 10, 15] as const;
 
   readonly listVm = toSignal(
@@ -45,36 +50,38 @@ export class SessionHistoryPageComponent {
       toObservable(this.refreshTick),
     ]).pipe(
       switchMap(([q, page, pageSize, patientId]) =>
-        this.api.searchSessions({
-          q,
-          page,
-          pageSize,
-          patientId: patientId || undefined,
-        }).pipe(
-          map(
-            (res) =>
-              ({
-                rows: res.rows,
-                total: res.total,
-                loading: false,
-                error: null,
-              }) satisfies SessionListVm,
-          ),
-          startWith({
-            rows: [] as SessionListRowDto[],
-            total: 0,
-            loading: true,
-            error: null,
-          } satisfies SessionListVm),
-          catchError(() =>
-            of({
-              rows: [],
+        this.api
+          .searchSessions({
+            q,
+            page,
+            pageSize,
+            patientId: patientId || undefined,
+          })
+          .pipe(
+            map(
+              (res) =>
+                ({
+                  rows: res.rows,
+                  total: res.total,
+                  loading: false,
+                  error: null,
+                }) satisfies SessionListVm,
+            ),
+            startWith({
+              rows: [] as SessionListRowDto[],
               total: 0,
-              loading: false,
-              error: 'No se pudo cargar el historial. Reintenta.',
+              loading: true,
+              error: null,
             } satisfies SessionListVm),
+            catchError(() =>
+              of({
+                rows: [],
+                total: 0,
+                loading: false,
+                error: 'No se pudo cargar el historial. ¿API en marcha y sesión iniciada?',
+              } satisfies SessionListVm),
+            ),
           ),
-        ),
       ),
     ),
     {
@@ -100,6 +107,27 @@ export class SessionHistoryPageComponent {
   readonly detailLoading = signal(false);
   readonly detailError = signal<string | null>(null);
   readonly detail = signal<SessionDetailDto | null>(null);
+
+  constructor() {
+    afterNextRender(() => {
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
+      this.patientsApi.list({ includeDeleted: false, page_size: 50 }).subscribe({
+        next: (res) => {
+          const base = { id: '', label: 'Todos los pacientes' };
+          const rest = res.results.map((r) => ({
+            id: String(r.patientId),
+            label: r.fullName,
+          }));
+          this.patientFilterOptions.set([base, ...rest]);
+        },
+        error: () => {
+          /* solo "Todos" */
+        },
+      });
+    });
+  }
 
   onSearchInput(ev: Event): void {
     const v = (ev.target as HTMLInputElement).value;
@@ -141,10 +169,8 @@ export class SessionHistoryPageComponent {
         },
         error: () => {
           this.detailLoading.set(false);
-          this.detailError.set(
-            'No se pudo cargar el detalle. Verifica `public/mock/session-history.json` o la conectividad.',
-          );
-          this.toast.show('No se pudo cargar el detalle (revisa red o el archivo /mock/session-history.json).');
+          this.detailError.set('No se pudo cargar el detalle de la sesión desde el API.');
+          this.toast.show('Error al cargar el detalle de la sesión.');
         },
       });
   }
@@ -167,7 +193,7 @@ export class SessionHistoryPageComponent {
   }
 
   viewReport(row: SessionListRowDto): void {
-    this.toast.show(`Reporte técnico (${row.id}): simulación; en producción vendría del servidor.`);
+    this.toast.show(`Reporte técnico (sesión ${row.id}): pendiente de endpoint en el API.`);
   }
 
   viewReportFirstVisible(): void {

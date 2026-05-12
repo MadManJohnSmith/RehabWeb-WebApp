@@ -13,7 +13,7 @@ export interface TemporalMetricPointDto {
 }
 
 export interface InactivityPatientDto {
-  /** Coincide con la ruta `/app/pacientes/:patientId` (mock). */
+  /** Coincide con la ruta `/app/pacientes/:patientId` (ID numérico del API como string). */
   patientId: string;
   name: string;
   days: number;
@@ -38,7 +38,7 @@ export interface RingMetricDto {
   frac: number;
 }
 
-/** Simula el payload JSON que devolvería un endpoint agregado del tablero. */
+/** Vista de tablero: forma consumida por el template tras mapear `GET /api/v1/me/dashboard/`. */
 export interface DashboardMetricsDto {
   inactivityHeadline: string;
   inactivityCount: number;

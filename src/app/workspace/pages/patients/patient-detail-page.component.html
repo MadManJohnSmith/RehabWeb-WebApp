@@ -1,134 +1,163 @@
-@let p = patient();
-<div class="mx-auto max-w-6xl space-y-6">
-  <div class="flex flex-wrap items-start justify-between gap-4">
-    <div>
-      <a routerLink="/app/pacientes" class="text-xs font-medium text-pm-primary hover:underline">← Pacientes</a>
-      <h1 class="mt-2 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">{{ p.name }}</h1>
-      <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">{{ p.condition }}</p>
-    </div>
-    <button
-      type="button"
-      (click)="openPlan()"
-      class="inline-flex items-center gap-2 rounded-control bg-pm-primary px-4 py-2 text-sm font-medium text-white hover:bg-pm-primary-hover"
-    >
-      Ver plan completo
-    </button>
-  </div>
-
-  <div class="grid gap-6 lg:grid-cols-3">
-    <section
-      class="lg:col-span-2 rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
-    >
-      <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Comparativa de desempeño</h2>
-      <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
-        Meta inicial frente a desempeño real (serie de demostración). Pasa el cursor por los puntos.
-      </p>
-      <div class="relative mt-4">
-        <svg
-          class="h-56 w-full text-pm-ink dark:text-pm-ink-on-dark"
-          viewBox="0 0 360 200"
-          preserveAspectRatio="none"
-          (mouseleave)="clearTip()"
-        >
-          <defs>
-            <linearGradient id="grid" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stop-color="currentColor" stop-opacity="0.06" />
-              <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
-            </linearGradient>
-          </defs>
-          <rect x="0" y="0" width="360" height="200" fill="url(#grid)" rx="12" />
-          <polyline
-            [attr.points]="linePointsForPatient(p.meta)"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-dasharray="6 4"
-            class="text-pm-info"
-          />
-          <polyline
-            [attr.points]="linePointsForPatient(p.real)"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            class="text-pm-primary"
-          />
-          @for (d of chartDots(); track $index) {
-            <circle
-              [attr.cx]="d.cx"
-              [attr.cy]="d.cy"
-              r="5"
-              [class.fill-pm-primary]="!d.regression"
-              [class.fill-pm-coral]="d.regression"
-              stroke="white"
-              stroke-width="1.5"
-              class="cursor-crosshair"
-              (mouseenter)="showPointTip($event, 'Valor observado: ' + d.real + ' · Meta: ' + d.meta)"
-              (mousemove)="showPointTip($event, 'Valor observado: ' + d.real + ' · Meta: ' + d.meta)"
-            />
-          }
-        </svg>
-        @if (chartTooltip(); as tip) {
-          <div
-            class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-control border border-pm-border bg-pm-surface px-2 py-1 text-xs font-medium text-pm-ink shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
-            [style.left.px]="tip.x"
-            [style.top.px]="tip.y"
-          >
-            {{ tip.text }}
-          </div>
+@if (patient(); as p) {
+  <div class="mx-auto max-w-6xl space-y-6">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <a routerLink="/app/pacientes" class="text-xs font-medium text-pm-primary hover:underline">← Pacientes</a>
+        <h1 class="mt-2 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">{{ p.name }}</h1>
+        <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">{{ p.condition }}</p>
+        @if (p.api) {
+          <p class="mt-2 text-xs text-pm-muted dark:text-pm-muted-dark">
+            Estado clínico: <span class="font-semibold capitalize text-pm-ink dark:text-pm-ink-on-dark">{{
+              p.api.clinicalStatus
+            }}</span>
+            · Última sesión: {{ formatIso(p.api.lastSessionAt) }}
+            @if (p.api.isUnlinked || p.api.deletedAt) {
+              <span class="ml-1 font-semibold text-pm-coral">(desvinculado)</span>
+            }
+          </p>
         }
       </div>
-      <div class="mt-3 flex flex-wrap gap-4 text-xs text-pm-muted dark:text-pm-muted-dark">
-        <span class="inline-flex items-center gap-2">
-          <span class="h-0.5 w-6 border-t-2 border-dashed border-pm-info"></span> Meta inicial
-        </span>
-        <span class="inline-flex items-center gap-2">
-          <span class="h-0.5 w-6 border-t-2 border-pm-primary"></span> Desempeño real
-        </span>
-        <span class="inline-flex items-center gap-1">
-          <span class="inline-block h-2 w-2 rounded-full bg-pm-primary"></span> Mejora
-        </span>
-        <span class="inline-flex items-center gap-1">
-          <span class="inline-block h-2 w-2 rounded-full bg-pm-coral"></span> Regresión
-        </span>
-      </div>
-    </section>
+      <button
+        type="button"
+        (click)="openPlan()"
+        class="inline-flex items-center gap-2 rounded-control bg-pm-primary px-4 py-2 text-sm font-medium text-white hover:bg-pm-primary-hover"
+      >
+        Ver plan completo
+      </button>
+    </div>
 
-    <aside
-      class="space-y-4 rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
-    >
-      <div>
-        <p class="text-xs font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
-          Resumen de recuperación
-        </p>
-        <p class="mt-3 text-4xl font-bold text-pm-primary">{{ p.recoveryScore }}</p>
-        <p class="text-xs text-pm-muted dark:text-pm-muted-dark">Puntuación global (demostración)</p>
+    @if (p.api) {
+      <div
+        class="rounded-control border border-pm-border bg-pm-canvas/60 px-4 py-3 text-xs text-pm-muted dark:border-pm-border-dark dark:bg-pm-canvas-dark/60 dark:text-pm-muted-dark"
+      >
+        <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">Datos del API:</span>
+        vínculo #{{ p.api.linkId }}, identificador
+        <span class="font-mono text-pm-ink dark:text-pm-ink-on-dark">{{ p.api.associationId || '—' }}</span>
       </div>
-      <div>
-        <p class="text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark">Articulación / ejercicio</p>
-        <ul class="mt-2 space-y-2">
-          @for (j of p.joints; track j.label) {
-            <li>
-              <div class="flex justify-between text-xs text-pm-muted dark:text-pm-muted-dark">
-                <span>{{ j.label }}</span>
-                <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ j.score }}%</span>
-              </div>
-              <div class="mt-1 h-2 overflow-hidden rounded-full bg-pm-canvas dark:bg-pm-canvas-dark">
-                <div
-                  class="h-full rounded-full bg-pm-primary transition-all"
-                  [style.width.%]="j.score"
-                ></div>
-              </div>
-            </li>
+    }
+
+    <div class="grid gap-6 lg:grid-cols-3">
+      <section
+        class="lg:col-span-2 rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+      >
+        <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Comparativa de desempeño</h2>
+        <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
+          Serie de <strong class="text-pm-ink dark:text-pm-ink-on-dark">demostración</strong> (misma forma que la UI previa). La curva real por paciente llegará con el endpoint de métricas / comparativa del API.
+        </p>
+        <div class="relative mt-4">
+          <svg
+            class="h-56 w-full text-pm-ink dark:text-pm-ink-on-dark"
+            viewBox="0 0 360 200"
+            preserveAspectRatio="none"
+            (mouseleave)="clearTip()"
+          >
+            <defs>
+              <linearGradient id="grid" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="currentColor" stop-opacity="0.06" />
+                <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
+              </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="360" height="200" fill="url(#grid)" rx="12" />
+            <polyline
+              [attr.points]="linePointsForPatient(p.meta)"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-dasharray="6 4"
+              class="text-pm-info"
+            />
+            <polyline
+              [attr.points]="linePointsForPatient(p.real)"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              class="text-pm-primary"
+            />
+            @for (d of chartDots(); track $index) {
+              <circle
+                [attr.cx]="d.cx"
+                [attr.cy]="d.cy"
+                r="5"
+                [class.fill-pm-primary]="!d.regression"
+                [class.fill-pm-coral]="d.regression"
+                stroke="white"
+                stroke-width="1.5"
+                class="cursor-crosshair"
+                (mouseenter)="showPointTip($event, 'Valor observado: ' + d.real + ' · Meta: ' + d.meta)"
+                (mousemove)="showPointTip($event, 'Valor observado: ' + d.real + ' · Meta: ' + d.meta)"
+              />
+            }
+          </svg>
+          @if (chartTooltip(); as tip) {
+            <div
+              class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-control border border-pm-border bg-pm-surface px-2 py-1 text-xs font-medium text-pm-ink shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
+              [style.left.px]="tip.x"
+              [style.top.px]="tip.y"
+            >
+              {{ tip.text }}
+            </div>
           }
-        </ul>
-      </div>
-      <div class="rounded-control border border-pm-border bg-pm-canvas p-3 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark">
-        <p class="text-xs font-medium text-pm-muted dark:text-pm-muted-dark">VAS dolor (0–10)</p>
-        <p class="mt-1 text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">{{ p.vasPain }}</p>
-        <p class="mt-2 text-xs text-pm-muted dark:text-pm-muted-dark">
-          Estado: <span class="font-semibold text-pm-primary">{{ p.status }}</span>
-        </p>
-      </div>
-    </aside>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-4 text-xs text-pm-muted dark:text-pm-muted-dark">
+          <span class="inline-flex items-center gap-2">
+            <span class="h-0.5 w-6 border-t-2 border-dashed border-pm-info"></span> Meta inicial
+          </span>
+          <span class="inline-flex items-center gap-2">
+            <span class="h-0.5 w-6 border-t-2 border-pm-primary"></span> Desempeño real
+          </span>
+          <span class="inline-flex items-center gap-1">
+            <span class="inline-block h-2 w-2 rounded-full bg-pm-primary"></span> Mejora
+          </span>
+          <span class="inline-flex items-center gap-1">
+            <span class="inline-block h-2 w-2 rounded-full bg-pm-coral"></span> Regresión
+          </span>
+        </div>
+      </section>
+
+      <aside
+        class="space-y-4 rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+      >
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
+            Resumen de recuperación
+          </p>
+          <p class="mt-3 text-4xl font-bold text-pm-primary">{{ p.recoveryScore }}</p>
+          <p class="text-xs text-pm-muted dark:text-pm-muted-dark">Puntuación global (demostración)</p>
+        </div>
+        <div>
+          <p class="text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark">Articulación / ejercicio</p>
+          <ul class="mt-2 space-y-2">
+            @for (j of p.joints; track j.label) {
+              <li>
+                <div class="flex justify-between text-xs text-pm-muted dark:text-pm-muted-dark">
+                  <span>{{ j.label }}</span>
+                  <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ j.score }}%</span>
+                </div>
+                <div class="mt-1 h-2 overflow-hidden rounded-full bg-pm-canvas dark:bg-pm-canvas-dark">
+                  <div
+                    class="h-full rounded-full bg-pm-primary transition-all"
+                    [style.width.%]="j.score"
+                  ></div>
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+        <div class="rounded-control border border-pm-border bg-pm-canvas p-3 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark">
+          <p class="text-xs font-medium text-pm-muted dark:text-pm-muted-dark">VAS dolor (0–10)</p>
+          <p class="mt-1 text-lg font-bold text-pm-ink dark:text-pm-ink-on-dark">{{ p.vasPain }}</p>
+          <p class="mt-2 text-xs text-pm-muted dark:text-pm-muted-dark">
+            Estado (demo): <span class="font-semibold text-pm-primary">{{ p.status }}</span>
+          </p>
+        </div>
+      </aside>
+    </div>
   </div>
-</div>
+} @else if (loadState() === 'error') {
+  <div class="mx-auto max-w-lg space-y-4 py-12 text-center">
+    <p class="text-sm text-pm-muted dark:text-pm-muted-dark">No se pudo mostrar esta ficha.</p>
+    <a routerLink="/app/pacientes" class="text-sm font-medium text-pm-primary hover:underline">Volver al directorio</a>
+  </div>
+} @else {
+  <div class="mx-auto max-w-lg py-16 text-center text-sm text-pm-muted dark:text-pm-muted-dark">Cargando ficha…</div>
+}

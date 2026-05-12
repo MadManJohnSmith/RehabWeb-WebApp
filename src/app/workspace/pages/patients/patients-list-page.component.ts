@@ -1,14 +1,15 @@
-import { NgClass } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { isPlatformBrowser, NgClass } from '@angular/common';
+import { Component, inject, PLATFORM_ID, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
-import {
-  type ClinicalStatus,
-  type PatientDirectoryRow,
-  PatientsRegistryService,
-} from '../../services/patients-registry.service';
+import type { TherapistPatientRowDto } from '../../data/patients-api.types';
+import { PatientsApiService } from '../../services/patients-api.service';
 import { ToastService } from '../../../core/toast.service';
+
+export type ClinicalStatus = 'riesgo' | 'activo' | 'alta';
 
 @Component({
   selector: 'app-patients-list-page',
@@ -17,11 +18,12 @@ import { ToastService } from '../../../core/toast.service';
   templateUrl: './patients-list-page.component.html',
 })
 export class PatientsListPageComponent {
-  private readonly registry = inject(PatientsRegistryService);
+  private readonly api = inject(PatientsApiService);
   private readonly toast = inject(ToastService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   readonly search = signal('');
-  readonly menuOpenId = signal<string | null>(null);
+  readonly menuOpenLinkId = signal<number | null>(null);
 
   readonly linkModalOpen = signal(false);
   readonly linkExternalId = signal('');
@@ -29,41 +31,65 @@ export class PatientsListPageComponent {
   readonly linkCondition = signal('');
   readonly linkClinicalStatus = signal<ClinicalStatus>('activo');
 
-  readonly editModal = signal<{ id: string } | null>(null);
+  readonly editModal = signal<{ linkId: number; label: string } | null>(null);
   readonly editConditionDraft = signal('');
 
-  readonly filteredRows = computed(() => {
-    this.registry.directorySorted();
-    const q = this.search().trim().toLowerCase();
-    return this.registry.directorySorted().filter((r) => {
-      if (!q) {
-        return true;
-      }
-      return (
-        r.id.toLowerCase().includes(q) ||
-        r.name.toLowerCase().includes(q) ||
-        r.externalUniqueId.toLowerCase().includes(q) ||
-        r.condition.toLowerCase().includes(q)
-      );
-    });
-  });
+  readonly rows = signal<TherapistPatientRowDto[]>([]);
+  readonly loading = signal(false);
+  readonly loadError = signal<string | null>(null);
+
+  constructor() {
+    toObservable(this.search)
+      .pipe(skip(1), debounceTime(350), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe(() => this.load());
+
+    if (isPlatformBrowser(this.platformId)) {
+      this.load();
+    }
+  }
+
+  load(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    this.loading.set(true);
+    this.loadError.set(null);
+    this.api
+      .list({
+        q: this.search(),
+        includeDeleted: true,
+        page: 1,
+        page_size: 50,
+      })
+      .subscribe({
+        next: (res) => {
+          this.rows.set(res.results);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.loading.set(false);
+          this.loadError.set('No se pudo cargar el directorio. ¿Está el API en marcha y tienes sesión?');
+          this.toast.show(this.loadError() ?? 'Error al cargar pacientes.');
+        },
+      });
+  }
 
   onSearch(ev: Event): void {
     this.search.set((ev.target as HTMLInputElement).value);
   }
 
-  toggleMenu(id: string): void {
-    this.menuOpenId.update((open) => (open === id ? null : id));
+  toggleMenu(linkId: number): void {
+    this.menuOpenLinkId.update((open) => (open === linkId ? null : linkId));
   }
 
   closeMenu(): void {
-    this.menuOpenId.set(null);
+    this.menuOpenLinkId.set(null);
   }
 
-  openEdit(row: PatientDirectoryRow): void {
+  openEdit(row: TherapistPatientRowDto): void {
     this.closeMenu();
-    this.editModal.set({ id: row.id });
-    this.editConditionDraft.set(row.condition);
+    this.editModal.set({ linkId: row.linkId, label: String(row.patientId) });
+    this.editConditionDraft.set(row.primaryDiagnosis ?? '');
   }
 
   closeEdit(): void {
@@ -80,27 +106,42 @@ export class PatientsListPageComponent {
       this.toast.show('El diagnóstico no puede quedar vacío.');
       return;
     }
-    this.registry.updateCondition(m.id, v);
-    this.toast.show('Diagnóstico actualizado (mock + localStorage).');
-    this.closeEdit();
+    this.api.patchLink(m.linkId, { primaryDiagnosis: v }).subscribe({
+      next: () => {
+        this.toast.show('Diagnóstico actualizado.');
+        this.closeEdit();
+        this.load();
+      },
+      error: () => this.toast.show('No se pudo guardar el diagnóstico.'),
+    });
   }
 
-  confirmUnlink(row: PatientDirectoryRow): void {
+  confirmUnlink(row: TherapistPatientRowDto): void {
     this.closeMenu();
-    if (!globalThis.confirm(`¿Desvincular a ${row.name}? (borrado lógico en la demo)`)) {
+    if (!globalThis.confirm(`¿Desvincular a ${row.fullName}?`)) {
       return;
     }
-    this.registry.unlink(row.id);
-    this.toast.show('Paciente desvinculado (soft delete). Sigue visible atenuado en la lista.');
+    this.api.unlink(row.linkId).subscribe({
+      next: () => {
+        this.toast.show('Paciente desvinculado.');
+        this.load();
+      },
+      error: () => this.toast.show('No se pudo desvincular.'),
+    });
   }
 
-  confirmRestore(row: PatientDirectoryRow): void {
+  confirmRestore(row: TherapistPatientRowDto): void {
     this.closeMenu();
-    if (!globalThis.confirm(`¿Reactivar vinculación de ${row.name}?`)) {
+    if (!globalThis.confirm(`¿Reactivar vinculación de ${row.fullName}?`)) {
       return;
     }
-    this.registry.restore(row.id);
-    this.toast.show('Paciente reactivado en el directorio (demo).');
+    this.api.restore(row.linkId).subscribe({
+      next: () => {
+        this.toast.show('Vinculación reactivada.');
+        this.load();
+      },
+      error: () => this.toast.show('No se pudo reactivar.'),
+    });
   }
 
   openLink(): void {
@@ -116,21 +157,37 @@ export class PatientsListPageComponent {
   }
 
   saveLink(): void {
-    const ext = this.linkExternalId().trim();
     const name = this.linkName().trim();
     const condition = this.linkCondition().trim();
-    if (!ext || !name || !condition) {
-      this.toast.show('Completa identificador, nombre y diagnóstico.');
+    if (!name || !condition) {
+      this.toast.show('Completa nombre y diagnóstico principal.');
       return;
     }
-    const id = this.registry.linkPatient({
-      externalUniqueId: ext,
-      name,
-      condition,
+    const ext = this.linkExternalId().trim();
+    const body: {
+      fullName: string;
+      primaryDiagnosis: string;
+      clinicalStatus: ClinicalStatus;
+      associationId?: string;
+    } = {
+      fullName: name,
+      primaryDiagnosis: condition,
       clinicalStatus: this.linkClinicalStatus(),
+    };
+    if (ext) {
+      body.associationId = ext;
+    }
+    this.api.link(body).subscribe({
+      next: () => {
+        this.toast.show('Paciente vinculado.');
+        this.closeLink();
+        this.load();
+      },
+      error: (err: { status?: number; error?: { detail?: string } }) => {
+        const d = err.error?.detail;
+        this.toast.show(typeof d === 'string' ? d : 'No se pudo vincular (revisa datos o permisos).');
+      },
     });
-    this.toast.show(`Paciente vinculado con ID ${id} (persistido en localStorage).`);
-    this.closeLink();
   }
 
   statusBadgeClass(s: ClinicalStatus): Record<string, boolean> {
@@ -148,7 +205,18 @@ export class PatientsListPageComponent {
     }
   }
 
-  rowOpacity(row: PatientDirectoryRow): string {
-    return row.deletedAt ? 'opacity-55' : '';
+  rowOpacity(row: TherapistPatientRowDto): string {
+    return row.deletedAt || row.isUnlinked ? 'opacity-55' : '';
+  }
+
+  formatLastSession(iso: string | null): string {
+    if (!iso) {
+      return '—';
+    }
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) {
+      return iso.slice(0, 10);
+    }
+    return d.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 }

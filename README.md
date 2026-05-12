@@ -70,7 +70,15 @@ src/app/
 
 | Archivo | Descripción |
 |---|---|
-| `app.config.ts` | Configuración de la app (providers: zoneless, HttpClient, router, SSR) |
+| `app.config.ts` | Zoneless, HttpClient + interceptor de token, router, SSR |
+| `src/app/core/auth.service.ts` | Login / logout contra `/api/v1/auth/login` y `logout` |
+| `src/app/core/auth.guard.ts` | Protege rutas bajo `/app` (requiere token en el navegador) |
+| `src/app/workspace/services/patients-api.service.ts` | HU-06: lista, ficha, vincular, PATCH, unlink/restore |
+| `src/app/workspace/services/session-history-api.service.ts` | HU-05: lista y detalle de sesiones (`/sessions/`) |
+| `src/app/workspace/services/dashboard-data.service.ts` | HU-01: `GET /me/dashboard/`; mapper en `data/dashboard-metrics.mapper.ts` |
+| `src/app/workspace/services/inactivity-alerts-data.service.ts` | HU-03: `GET /inactivity-alerts/`; mapper en `data/inactivity-alerts.mapper.ts` |
+| `src/app/workspace/services/clinical-export-api.service.ts` | HU-02: `POST /reports/export/` (PDF/XLSX, `responseType: 'blob'`) |
+| `src/app/workspace/services/performance-compare-api.service.ts` | HU-04: `POST /performance/compare/` (`patientIds`) |
 | `app.routes.ts` | Definición de rutas de la aplicación |
 | `app.html` | Template principal de la aplicación |
 | `app.scss` | Estilos globales de la aplicación |
@@ -81,8 +89,39 @@ src/app/
 
 Este frontend se conecta a la API REST de **RehabWeb-Api** (Django REST Framework).
 
-- Backend URL: `http://127.0.0.1:8000/`
+- Base del API (desarrollo): `http://127.0.0.1:8000/api/v1` — definida en `src/environments/environment.ts`.
 - El backend tiene CORS configurado para aceptar peticiones desde `http://localhost:4200`.
+- **Autenticación:** token DRF. Tras iniciar sesión en `/login`, las peticiones al API envían `Authorization: Token <clave>`. Ver `AuthService`, `AuthTokenStore` y `auth-http.interceptor.ts` en `src/app/core/`.
+- **Arranque típico:** levantar MySQL + `python manage.py runserver` en el API, luego `ng serve` aquí. Sin API, el login mostrará error (red o mensaje del servidor).
+- **Pacientes (HU-06):** el directorio y la ficha usan IDs **numéricos** del backend en la URL (`/app/pacientes/12`). Hay tests unitarios de mappers y `AuthService` (ver sección **Tests** más abajo).
+- **Sesiones (HU-05):** el historial usa `GET /api/v1/sessions/` y el panel lateral `GET /api/v1/sessions/<id>/`. El filtro “por paciente” se rellena con los vínculos del terapeuta vía `GET /api/v1/patients/`.
+- **Dashboard (HU-01):** métricas desde `GET /api/v1/me/dashboard/`; si la petición falla, el servicio usa el mock local para no dejar la pantalla vacía.
+- **Inactividad (HU-03):** listado desde `GET /api/v1/inactivity-alerts/` (`thresholdDays`, `inactiveCount`, `alerts[]`); si falla, mock de respaldo.
+- **Exportación clínica (HU-02):** `POST /api/v1/reports/export/` con `patientId` (entero), fechas y `format`: `pdf` o `xlsx`; descarga vía `Blob` y nombre desde `Content-Disposition` o convención local.
+- **Comparativa (HU-04):** `POST /api/v1/performance/compare/` con `patientIds` (hasta 12); la pantalla `/app/comparativa` dibuja series desde `patients[].temporalSeries` y escala grupal con `groupBounds`.
+
+**Variables de entorno / build**
+
+- Desarrollo: `src/environments/environment.ts` → `apiBaseUrl` (por defecto `http://127.0.0.1:8000/api/v1`, sin barra final o con la misma política que `ApiConfigService.url()`).
+- Producción: `src/environments/environment.prod.ts` sustituido vía `fileReplacements` en `angular.json` al compilar con configuración `production`.
+- El token DRF se guarda en el navegador (`localStorage`, clave interna del `AuthTokenStore`); no usar `Bearer` en llamadas al API de este proyecto.
+
+### Checklist de integración manual (antes de release)
+
+Marca en equipo tras verificar en navegador con API + MySQL reales:
+
+1. Login → dashboard → lista pacientes → detalle → historial de sesiones → alertas → exportación PDF/XLSX → comparativa (flujo feliz con usuario terapeuta).
+2. **401:** token inválido o caducado → redirección a `/login` y sesión limpia (interceptor).
+3. **403 / sin terapeuta:** mensaje del API en pantallas que llamen endpoints protegidos (export, dashboard, etc.); comprobar que el texto sea comprensible.
+4. **Paginación:** lista de pacientes y de sesiones con muchos registros (`page` / `page_size`).
+
+---
+
+## 🧪 Tests unitarios (Karma + Jasmine)
+
+- Comando: `npm test` (equivale a `ng test`).
+- Incluyen adaptadores `mapDashboardApiToDto`, `mapInactivityApiResponseToView` / `mapInactivityApiItemToRow` y `AuthService` (login + logout con `HttpClientTestingModule`).
+- **Requisito local:** navegador Chrome instalado o variable de entorno `CHROME_BIN` apuntando al ejecutable, porque Karma usa `ChromeHeadless` por defecto del builder. Si falla el launcher, instala Chrome o define `CHROME_BIN` y vuelve a ejecutar `npm test`.
 
 ---
 

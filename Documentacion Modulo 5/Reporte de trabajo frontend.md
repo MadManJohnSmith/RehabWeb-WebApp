@@ -32,17 +32,17 @@ En el **tablero de control** (`/app`, ruta `dashboard`) el terapeuta ve un resum
 
 ### Resumen (qué hace el usuario)
 
-En **Generación de reportes** (`/app/reportes`) puede elegir **paciente** (obligatorio), **fecha desde** y **fecha hasta**; si algo falta o el rango es inválido, ve un aviso y los botones de exportación **no están activos**. **Descargar Excel** genera un **CSV de demostración** en el navegador y muestra un **toast**; **Descargar PDF** solo confirma el flujo con **toast** (no hay PDF binario). Hay un recuadro que muestra cómo iría la cabecera **`Authorization: Bearer …`** con un **token de terapeuta simulado** (no es login real).
+En **Generación de reportes** (`/app/reportes`) elige **paciente** (lista desde `GET /api/v1/patients/`), **fecha desde** y **fecha hasta**; si el formulario es inválido o el rango supera **366 días**, ve avisos y los botones quedan deshabilitados. **Descargar XLSX** o **Descargar PDF** llaman a `POST /api/v1/reports/export/`; el navegador descarga el binario (nombre preferente desde `Content-Disposition`). La cabecera de auth la añade el interceptor (**Token DRF**), no un JWT simulado.
 
 ### Detalle técnico
 
 | Tema | Entrega |
 |------|---------|
-| Filtros + formulario | `ngModel` en paciente y fechas; `validateFilters()` / `isFormValid()`; botones `[disabled]` cuando el formulario es inválido. |
-| Excel simulado | `Blob` + descarga `.csv` (solo en navegador; protegido con `isPlatformBrowser` por SSR). |
-| PDF | Solo mensajes vía `ToastService` (sin backend). |
-| JWT / rol terapeuta | `TherapistSessionService` + **§7** en `Baseline-Tokens.md`; DTO `ClinicalExportFiltersDto` para el cuerpo previsto de la petición. |
-| Archivos | `reports-page.component.ts/html`, `therapist-session.service.ts`, `clinical-export-request.dto.ts`. |
+| Filtros + formulario | `ngModel`; `validateFilters()` / `isFormValid()`; rango máximo `MAX_CLINICAL_EXPORT_RANGE_DAYS` alineado al API. |
+| Export real | `ClinicalExportApiService.requestExport()` — `observe: 'response'`, `responseType: 'blob'`; parseo de errores JSON en `Blob`. |
+| PDF / XLSX | Cuerpo camelCase: `patientId`, `dateFrom`, `dateTo`, `format`: `pdf` \| `xlsx`. |
+| Auth | Interceptor `Authorization: Token …`; copy en pantalla sin Bearer JWT. |
+| Archivos | `reports-page.component.ts/html`, `clinical-export-api.service.ts`, `clinical-export-request.dto.ts`; `TherapistSessionService` deprecado (demo antigua). |
 
 ---
 
@@ -58,9 +58,9 @@ En el **tablero** (`/app`) el bloque **amarillo** de inactividad indica cuántos
 |------|---------|
 | Regla > 3 días | Copy en banner y en página de alertas; mock con días 5, 6 y 7 (todos > 3). |
 | Enlaces | Tarjetas del dashboard → `[routerLink]="['/app/pacientes', p.patientId]"`; tabla → nombre + botón **Perfil** + `patientId` en `InactivityPatientDto` / filas mock. |
-| Mock tipo lista | `InactivityAlertRowDto`, `INACTIVITY_ALERTS_MOCK`, `InactivityAlertsDataService.getAlerts()`. |
+| Lista alertas | `GET /api/v1/inactivity-alerts/` vía `InactivityAlertsDataService.getAlertsView()`, mapper, `INACTIVITY_ALERTS_MOCK_VIEW` de respaldo; `patientId` numérico. |
 | Cron (N/A front) | `title` / `aria-label` en dashboard y en `/app/alertas`; **§8** en `Baseline-Tokens.md`. |
-| Archivos | `dashboard-metrics.dto/mock`, `dashboard-page`, `inactivity-alerts.dto/mock`, `inactivity-alerts-data.service.ts`, `inactivity-alerts-page`. |
+| Archivos | `dashboard-metrics.dto/mock`, `dashboard-page`, `inactivity-alerts*.dto/mock/api.types/mapper`, `inactivity-alerts-data.service.ts`, `inactivity-alerts-page`. |
 
 ---
 
@@ -68,16 +68,16 @@ En el **tablero** (`/app`) el bloque **amarillo** de inactividad indica cuántos
 
 ### Resumen (qué hace el usuario)
 
-En **`/app/comparativa`** (menú **Comparativa de desempeño**) puede ver primero la **fórmula de progreso** en texto (hasta tener la imagen oficial del documento de HU). La **vista individual** permite elegir un paciente y ver **meta inicial** (línea discontinua) y **desempeño real** con puntos, leyenda y tooltips. La **vista grupal** permite marcar **varios pacientes** y ver en **un solo gráfico** sus curvas de desempeño real semanal (como proxy del *recovery score* en la demo), con leyenda por color.
+En **`/app/comparativa`** puede ver la **fórmula de progreso** en texto. La **vista individual** elige paciente (lista desde `GET /patients/`) y muestra **meta** (discontinua) y **observado** desde `temporalSeries` del API. La **vista grupal** marca varios pacientes (máx. 12 con el individual) y envía **`POST /api/v1/performance/compare/`**; las curvas usan `observedValue` con escala común de `groupBounds`. Tooltips usan `periodLabel`; regresión vía `trend === 'regressed'` cuando existe.
 
 ### Detalle técnico
 
 | Tema | Entrega |
 |------|---------|
-| Datos compartidos | `patient-detail.mock.ts` (`PATIENT_DETAIL_MOCK`, `PATIENT_DETAIL_IDS`); perfil de paciente importa el mismo mock. |
-| Página | `ComparisonPerformancePageComponent` en `pages/comparison/`; ruta `comparativa` en `workspace.routes.ts`. |
-| Gráficos | SVG + `computed` para puntos/líneas; grupo con escala común `groupBounds`. |
-| Fórmula | Bloque en UI + **§9** en `Baseline-Tokens.md`. |
+| Datos | `PerformanceCompareApiService`, tipos en `performance-compare-api.types.ts`; sin `PATIENT_DETAIL_MOCK` en esta página. |
+| Página | `ComparisonPerformancePageComponent` — `toSignal` + `combineLatest` + `distinctUntilChanged` + `POST` con `takeUntilDestroyed`. |
+| Gráficos | SVG + `computed` desde payload API; escala grupal con `groupBounds` del servidor. |
+| Fórmula | Bloque en UI + **§9** en `Baseline-Tokens.md`; `recoveryScorePercent` opcional en resumen API. |
 
 ---
 

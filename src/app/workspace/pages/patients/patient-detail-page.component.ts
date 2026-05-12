@@ -1,10 +1,17 @@
-import { afterNextRender, Component, computed, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { afterNextRender, Component, computed, inject, PLATFORM_ID, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
-import { PATIENT_DETAIL_MOCK } from '../../data/patient-detail.mock';
-import { PatientsRegistryService } from '../../services/patients-registry.service';
+import { PATIENT_DETAIL_MOCK, type PatientDetailRecord } from '../../data/patient-detail.mock';
+import type { TherapistPatientRowDto } from '../../data/patients-api.types';
+import { PatientsApiService } from '../../services/patients-api.service';
 import { ToastService } from '../../../core/toast.service';
+
+/** Vista de ficha: cabecera API + gráficos de demostración hasta integrar métricas por paciente. */
+export type PatientDetailVm = PatientDetailRecord & {
+  api?: TherapistPatientRowDto;
+};
 
 @Component({
   selector: 'app-patient-detail-page',
@@ -15,33 +22,40 @@ import { ToastService } from '../../../core/toast.service';
 export class PatientDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
-  private readonly registry = inject(PatientsRegistryService);
+  private readonly api = inject(PatientsApiService);
+  private readonly platformId = inject(PLATFORM_ID);
 
-  private readonly patientId = toSignal(
+  private readonly patientIdParam = toSignal(
     this.route.paramMap.pipe(map((p) => p.get('patientId') ?? '')),
     { initialValue: '' },
   );
 
-  protected readonly patient = computed(() => {
-    this.registry.directorySorted();
-    const id = this.patientId();
-    const extra = this.registry.getDetailExtra(id);
-    if (extra) {
-      return extra;
+  readonly apiRow = signal<TherapistPatientRowDto | null>(null);
+  readonly loadState = signal<'idle' | 'loading' | 'error' | 'ok'>('idle');
+
+  private readonly demoFallback = PATIENT_DETAIL_MOCK['p-001'];
+
+  readonly patient = computed<PatientDetailVm | null>(() => {
+    const row = this.apiRow();
+    if (!row) {
+      return null;
     }
-    const base = PATIENT_DETAIL_MOCK[id];
-    if (base) {
-      const row = this.registry.getDirectoryRow(id);
-      if (row) {
-        return { ...base, name: row.name, condition: row.condition };
-      }
-      return base;
-    }
-    return PATIENT_DETAIL_MOCK['p-001'];
+    const d = this.demoFallback;
+    return {
+      ...d,
+      id: String(row.patientId),
+      name: row.fullName,
+      condition: row.primaryDiagnosis || '—',
+      status: row.clinicalStatus,
+      api: row,
+    };
   });
 
   protected readonly chartDots = computed(() => {
     const p = this.patient();
+    if (!p) {
+      return [];
+    }
     return this.dotsFromSeries(p.meta, p.real, 360, 200, 16);
   });
 
@@ -49,22 +63,35 @@ export class PatientDetailPageComponent {
 
   constructor() {
     afterNextRender(() => {
-      const id = this.patientId();
-      if (!id) {
+      if (!isPlatformBrowser(this.platformId)) {
         return;
       }
-      const known =
-        id in PATIENT_DETAIL_MOCK ||
-        !!this.registry.getDetailExtra(id) ||
-        !!this.registry.getDirectoryRow(id);
-      if (!known) {
-        this.toast.show('Paciente no encontrado en los datos de demostración; se muestra un ejemplo.');
+      const raw = this.patientIdParam();
+      const id = Number.parseInt(raw, 10);
+      if (!Number.isFinite(id) || id < 1) {
+        this.loadState.set('error');
+        this.toast.show('ID de paciente no válido. Usa el número del directorio (API).');
+        return;
       }
+      this.loadState.set('loading');
+      this.api.getFicha(id).subscribe({
+        next: (data) => {
+          this.apiRow.set(data);
+          this.loadState.set('ok');
+        },
+        error: () => {
+          this.loadState.set('error');
+          this.toast.show('No se pudo cargar la ficha (¿permisos o ID inexistente?).');
+        },
+      });
     });
   }
 
   linePointsForPatient(values: number[], width = 360, height = 200, pad = 16): string {
     const p = this.patient();
+    if (!p) {
+      return '';
+    }
     const all = [...p.meta, ...p.real];
     const n = values.length;
     if (n < 2) {
@@ -122,6 +149,17 @@ export class PatientDetailPageComponent {
   }
 
   openPlan(): void {
-    this.toast.show('Plan completo: pendiente de integración con el servidor.');
+    this.toast.show('Plan completo: pendiente de endpoint dedicado en el API.');
+  }
+
+  formatIso(iso: string | null | undefined): string {
+    if (!iso) {
+      return '—';
+    }
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) {
+      return iso.slice(0, 16);
+    }
+    return d.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
   }
 }

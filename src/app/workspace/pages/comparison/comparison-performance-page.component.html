@@ -6,11 +6,23 @@
       </p>
       <h1 class="mt-1 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Meta inicial vs desempeño real</h1>
       <p class="mt-1 max-w-3xl text-sm text-pm-muted dark:text-pm-muted-dark">
-        Vista individual por paciente y vista grupal con varias curvas de <span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">recovery score</span> semanal (serie «real» de la demo). Datos mock compartidos con el perfil de paciente.
+        Vista individual y grupal con datos de
+        <code class="rounded bg-pm-canvas px-1 py-0.5 text-xs dark:bg-pm-canvas-dark">POST /api/v1/performance/compare/</code>
+        (serie temporal meta vs observado por paciente; escala común en la vista grupal). Máximo 12 pacientes por
+        solicitud.
       </p>
     </div>
     <a routerLink="/app/pacientes" class="text-sm font-medium text-pm-primary hover:underline">Directorio de pacientes</a>
   </div>
+
+  @if (compareLoading()) {
+    <p class="text-sm text-pm-muted dark:text-pm-muted-dark" role="status">Actualizando comparativa…</p>
+  }
+  @if (compareErrorMessage(); as errMsg) {
+    <p class="rounded-control border border-pm-coral/40 bg-pm-danger-bg px-4 py-3 text-sm text-pm-coral dark:bg-pm-danger-bg-dark dark:text-pm-coral">
+      {{ errMsg }}
+    </p>
+  }
 
   <!-- Fórmula de progreso (HU-04 AC-01 — texto hasta incorporar figura oficial) -->
   <section
@@ -19,7 +31,8 @@
     <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Fórmula de progreso (referencia)</h2>
     <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
       Alineación al criterio de la HU: superposición de meta y real en gráficas; el progreso relativo se documenta aquí
-      en texto hasta disponer de la imagen oficial del expediente de producto.
+      en texto hasta disponer de la imagen oficial del expediente de producto. El API puede incluir
+      <span class="font-mono text-xs">recoveryScorePercent</span> en el resumen (placeholder documentado en servidor).
     </p>
     <div
       class="mt-4 rounded-control border border-pm-border bg-pm-canvas/90 p-4 font-mono text-sm leading-relaxed text-pm-ink dark:border-pm-border-dark dark:bg-pm-canvas-dark/80 dark:text-pm-ink-on-dark"
@@ -44,28 +57,46 @@
       <div>
         <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Vista individual</h2>
         <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
-          Dos series superpuestas con leyenda y tooltips en los puntos (misma lectura que el perfil del paciente).
+          Dos series superpuestas con leyenda y tooltips en los puntos (datos del API para el paciente elegido).
         </p>
       </div>
       <div class="w-full max-w-xs">
         <label class="mb-1 block text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Paciente</label>
         <select
           class="w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-2.5 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
-          [ngModel]="individualId()"
-          (ngModelChange)="individualId.set($event)"
+          [ngModel]="individualPatientId()"
+          (ngModelChange)="individualPatientId.set($event)"
         >
-          @for (id of patientIds; track id) {
-            <option [value]="id">{{ mock[id].name }}</option>
+          @if (!patientOptions().length) {
+            <option value="">Sin pacientes vinculados</option>
+          }
+          @for (p of patientOptions(); track p.id) {
+            <option [value]="p.id">{{ p.label }}</option>
           }
         </select>
       </div>
     </div>
 
-    <p class="mt-3 text-xs text-pm-muted dark:text-pm-muted-dark">
-      {{ individualPatient().condition }} ·
-      <a [routerLink]="['/app/pacientes', individualPatient().id]" class="font-medium text-pm-primary hover:underline"
-        >Abrir ficha completa</a>
-    </p>
+    @if (individualPayload(); as ind) {
+      <p class="mt-3 text-xs text-pm-muted dark:text-pm-muted-dark">
+        @if (ind.summary.recoveryScorePercent != null) {
+          Progreso (API): <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ formatRecoveryPct(ind.summary.recoveryScorePercent) }}</span>
+          ·
+        }
+        <a [routerLink]="['/app/pacientes', ind.patientId]" class="font-medium text-pm-primary hover:underline">Abrir ficha completa</a>
+      </p>
+    } @else if (individualPatientId()) {
+      <p class="mt-3 text-xs text-pm-muted dark:text-pm-muted-dark">
+        <a [routerLink]="['/app/pacientes', individualPatientId()]" class="font-medium text-pm-primary hover:underline">Abrir ficha</a>
+        (sin serie en la última respuesta del API)
+      </p>
+    }
+
+    @if (individualPayload(); as ind2) {
+      @if (ind2.temporalSeries.length < 2) {
+        <p class="mt-4 text-sm text-pm-muted dark:text-pm-muted-dark">Se necesitan al menos dos puntos en la serie para dibujar la gráfica.</p>
+      }
+    }
 
     <div class="relative mt-4">
       <svg
@@ -106,8 +137,8 @@
             stroke="white"
             stroke-width="1.5"
             class="cursor-crosshair dark:stroke-pm-surface-dark"
-            (mouseenter)="showTip($event, 'Observado: ' + d.real + ' · Meta: ' + d.meta)"
-            (mousemove)="showTip($event, 'Observado: ' + d.real + ' · Meta: ' + d.meta)"
+            (mouseenter)="showTip($event, tipForDot(d))"
+            (mousemove)="showTip($event, tipForDot(d))"
           />
         }
       </svg>
@@ -143,25 +174,31 @@
   >
     <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Vista grupal (recovery score)</h2>
     <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
-      Selecciona uno o más pacientes; cada línea continua es la serie de <strong class="text-pm-ink dark:text-pm-ink-on-dark">desempeño real</strong> semanal (proxy del recovery score en esta demo). Escala común para comparar en un solo gráfico.
+      Selecciona uno o más pacientes; cada línea continua es la serie de
+      <strong class="text-pm-ink dark:text-pm-ink-on-dark">desempeño real</strong> (observado). Escala común usando
+      <span class="font-mono text-xs">groupBounds</span> del API.
     </p>
 
-    <fieldset class="mt-4 flex flex-wrap gap-3 border-0 p-0">
-      <legend class="sr-only">Pacientes en comparativa grupal</legend>
-      @for (id of patientIds; track id) {
-        <label
-          class="inline-flex cursor-pointer items-center gap-2 rounded-control border border-pm-border bg-pm-canvas/80 px-3 py-2 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark/60"
-        >
-          <input
-            type="checkbox"
-            class="h-4 w-4 rounded border-pm-border text-pm-primary focus:ring-pm-primary"
-            [checked]="isGroupChecked(id)"
-            (change)="toggleGroup(id, $any($event.target).checked)"
-          />
-          <span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">{{ mock[id].name }}</span>
-        </label>
-      }
-    </fieldset>
+    @if (!patientOptions().length) {
+      <p class="mt-4 text-sm text-pm-muted dark:text-pm-muted-dark">No hay pacientes vinculados para comparar.</p>
+    } @else {
+      <fieldset class="mt-4 flex flex-wrap gap-3 border-0 p-0">
+        <legend class="sr-only">Pacientes en comparativa grupal</legend>
+        @for (p of patientOptions(); track p.id) {
+          <label
+            class="inline-flex cursor-pointer items-center gap-2 rounded-control border border-pm-border bg-pm-canvas/80 px-3 py-2 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark/60"
+          >
+            <input
+              type="checkbox"
+              class="h-4 w-4 rounded border-pm-border text-pm-primary focus:ring-pm-primary"
+              [checked]="isGroupChecked(p.id)"
+              (change)="toggleGroup(p.id, $any($event.target).checked)"
+            />
+            <span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">{{ p.label }}</span>
+          </label>
+        }
+      </fieldset>
+    }
 
     <div class="relative mt-6">
       <svg
@@ -194,7 +231,7 @@
       @for (pid of groupOrderedIds(); track pid; let idx = $index) {
         <span class="inline-flex items-center gap-2">
           <span class="h-0.5 w-8 border-t-2 border-current" [class]="strokeClassAt(idx)"></span>
-          {{ mock[pid].name }} (real)
+          {{ nameForPatientId(pid) }} (real)
         </span>
       }
     </div>

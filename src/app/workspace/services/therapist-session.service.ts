@@ -1,8 +1,9 @@
 import { Injectable, signal } from '@angular/core';
 
 /**
- * Demostración de AC-03 (HU-02): en producción el JWT vendría del login y el backend validaría rol `terapeuta`.
- * Aquí solo se expone el formato de cabecera que usaría `HttpClient` al llamar al endpoint de exportación.
+ * Demo antigua (JWT Bearer simulado). HU-02 usa el token DRF real vía `authHttpInterceptorFn` y
+ * {@link ClinicalExportApiService}; conservado solo por referencia en documentación histórica.
+ * @deprecated
  */
 @Injectable({ providedIn: 'root' })
 export class TherapistSessionService {

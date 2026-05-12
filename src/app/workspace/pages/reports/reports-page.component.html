@@ -7,26 +7,28 @@
     </p>
     <h1 class="mt-2 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Exportación de datos clínicos</h1>
     <p class="mt-2 max-w-2xl text-sm text-pm-muted dark:text-pm-muted-dark">
-      Genera reportes técnicos para expediente o distribución interna. En esta demo los filtros son obligatorios, la
-      descarga de Excel es un archivo simulado (CSV) y el PDF solo muestra el flujo de confirmación hasta existir API
-      real.
+      Genera informes para expediente mediante
+      <code class="rounded bg-pm-canvas px-1 py-0.5 text-xs dark:bg-pm-canvas-dark">POST /api/v1/reports/export/</code>
+      con formato <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">PDF</span> o
+      <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">XLSX</span>. El listado de pacientes sale de tu
+      vínculo activo con el API; el rango máximo por solicitud es
+      <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ maxExportRangeDays }} días</span> (misma regla que el
+      servidor).
     </p>
 
     <div
       class="mt-6 rounded-control border border-pm-border bg-pm-canvas/80 p-4 dark:border-pm-border-dark dark:bg-pm-canvas-dark/50"
       role="region"
-      aria-label="Sesión de terapeuta simulada"
+      aria-label="Autenticación con el API"
     >
       <p class="text-xs font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
-        Sesión terapeuta (mock — HU-02 AC-03)
+        Autenticación (HU-02)
       </p>
       <p class="mt-1 text-xs text-pm-muted dark:text-pm-muted-dark">
-        Cuando exista login, las peticiones HTTP de exportación usarán una cabecera como la siguiente (rol terapeuta
-        validado en servidor).
+        Tras iniciar sesión, el interceptor añade automáticamente
+        <span class="font-mono text-pm-ink dark:text-pm-ink-on-dark">Authorization: Token …</span>
+        a las peticiones al API (token DRF, no Bearer JWT).
       </p>
-      <pre
-        class="mt-2 max-h-24 overflow-auto rounded-control border border-pm-border bg-pm-surface px-3 py-2 font-mono text-[11px] leading-relaxed text-pm-ink dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
-      >Authorization: {{ therapistSession.authorizationHeader() }}</pre>
     </div>
 
     <div class="mt-8 grid gap-5 md:grid-cols-2">
@@ -39,7 +41,7 @@
           [(ngModel)]="pacienteId"
           class="w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-3 text-sm font-medium text-pm-ink outline-none ring-pm-primary focus:ring-2 dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
         >
-          @for (p of patientOptions; track p.id) {
+          @for (p of patientOptions(); track p.id) {
             <option [value]="p.id">{{ p.label }}</option>
           }
         </select>
@@ -77,21 +79,29 @@
     <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-stretch">
       <button
         type="button"
-        [disabled]="!isFormValid()"
-        (click)="export('excel')"
+        [disabled]="!isFormValid() || exportBusy()"
+        (click)="export('xlsx')"
         class="inline-flex flex-1 items-center justify-center gap-3 rounded-cta bg-pm-primary px-6 py-4 text-base font-semibold text-white shadow-pm-md transition hover:bg-pm-primary-hover disabled:pointer-events-none disabled:opacity-45 dark:shadow-pm-md-dark"
       >
         <app-ui-icon name="file-spreadsheet" [size]="22" svgClass="text-white" />
-        Descargar Excel
+        @if (exportBusy()) {
+          Generando…
+        } @else {
+          Descargar XLSX
+        }
       </button>
       <button
         type="button"
-        [disabled]="!isFormValid()"
+        [disabled]="!isFormValid() || exportBusy()"
         (click)="export('pdf')"
         class="inline-flex flex-1 items-center justify-center gap-3 rounded-cta border-2 border-pm-coral bg-pm-surface px-6 py-4 text-base font-semibold text-pm-coral shadow-pm-sm transition hover:bg-pm-danger-bg disabled:pointer-events-none disabled:opacity-45 dark:border-pm-coral dark:bg-pm-surface-dark dark:text-pm-coral dark:hover:bg-pm-danger-bg-dark"
       >
         <app-ui-icon name="download" [size]="22" />
-        Descargar PDF
+        @if (exportBusy()) {
+          Generando…
+        } @else {
+          Descargar PDF
+        }
       </button>
     </div>
 

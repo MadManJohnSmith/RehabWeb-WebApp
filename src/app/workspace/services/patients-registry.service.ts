@@ -59,6 +59,9 @@ function cloneStubDetail(id: string, name: string, condition: string): PatientDe
   };
 }
 
+/**
+ * @deprecated El directorio en `/app/pacientes` usa `PatientsApiService`. Conservado para mocks / localStorage hasta migrar otras pantallas.
+ */
 @Injectable({ providedIn: 'root' })
 export class PatientsRegistryService {
   private readonly platformId = inject(PLATFORM_ID);

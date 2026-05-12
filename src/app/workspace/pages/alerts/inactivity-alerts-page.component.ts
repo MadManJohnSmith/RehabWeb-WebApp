@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { INACTIVITY_ALERTS_MOCK } from '../../data/inactivity-alerts.mock';
+import { INACTIVITY_ALERTS_MOCK_VIEW } from '../../data/inactivity-alerts.mock';
 import { InactivityAlertsDataService } from '../../services/inactivity-alerts-data.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
 
@@ -14,12 +14,14 @@ import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
 export class InactivityAlertsPageComponent {
   private readonly alertsData = inject(InactivityAlertsDataService);
 
-  readonly filas = toSignal(this.alertsData.getAlerts(), { initialValue: INACTIVITY_ALERTS_MOCK });
+  readonly vm = toSignal(this.alertsData.getAlertsView(), {
+    initialValue: INACTIVITY_ALERTS_MOCK_VIEW,
+  });
 
   protected readonly log = signal<string[]>([]);
 
-  readonly cronHint =
-    'En producción: un Cron en el servidor revisa cada día las últimas sesiones y eleva alerta si la diferencia con hoy es mayor a 3 días.';
+  readonly dataHint =
+    'El backend calcula en vivo los pacientes vinculados sin sesión o con más de 3 días desde la última sesión (misma regla que el dashboard).';
 
   motivacional(id: string): void {
     this.log.update((l) => [`Mensaje motivacional (simulado): ${id}`, ...l].slice(0, 6));

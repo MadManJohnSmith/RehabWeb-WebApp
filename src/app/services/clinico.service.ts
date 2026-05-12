@@ -99,4 +99,7 @@ export class ClinicoService {
   eliminarCita(id: string): Observable<any> {
     return this.http.delete(`${API}/citas/${id}/`);
   }
+  actualizarEvaluacion(id: string, evaluacion: any): Observable<any> {
+    return this.http.put<any>(`${API}/evaluaciones/${id}/`, evaluacion);
+  }
 }

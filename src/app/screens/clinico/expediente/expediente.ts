@@ -24,15 +24,19 @@ import autoTable from 'jspdf-autotable';
             <h2>Buscar Paciente</h2>
             <div class="grid-2">
               <div class="field">
-                <label>ID del Perfil Clínico *</label>
-                <input type="text" [(ngModel)]="perfilId" name="perfilId"
-                  placeholder="Ej. 8b95d6b5-507d-4406-8c96-6ca3670aadb9" />
+                <label>Nombre del paciente *</label>
+                <input type="text" [(ngModel)]="busquedaNombre" name="busquedaNombre"
+                  placeholder="Ej. Juan García López" />
               </div>
-              <div class="field" style="justify-content: flex-end;">
-                <button class="btn-primary" (click)="buscarPerfil()" [disabled]="cargando">
-                  {{ cargando ? 'Buscando...' : 'Buscar Paciente' }}
-                </button>
+              <div class="field">
+                <label>Fecha de nacimiento *</label>
+                <input type="date" [(ngModel)]="busquedaFecha" name="busquedaFecha" />
               </div>
+            </div>
+            <div class="actions" style="margin-top: 0.5rem;">
+              <button class="btn-primary" (click)="buscarPerfil()" [disabled]="cargando">
+                {{ cargando ? 'Buscando...' : 'Buscar Paciente' }}
+              </button>
             </div>
             <p class="error" *ngIf="error">{{ error }}</p>
           </section>
@@ -322,8 +326,10 @@ import autoTable from 'jspdf-autotable';
 })
 export class ExpedienteComponent {
   private clinicoService = inject(ClinicoService);
-  private cdr = inject(ChangeDetectorRef);
+private cdr = inject(ChangeDetectorRef);
 
+  busquedaNombre = '';
+  busquedaFecha = '';
   perfilId = '';
   perfil: any = null;
   evaluaciones: any[] = [];
@@ -331,24 +337,37 @@ export class ExpedienteComponent {
   error = '';
 
   buscarPerfil() {
-    if (!this.perfilId.trim()) {
-      this.error = 'Ingresa el ID del perfil.';
+    if (!this.busquedaNombre.trim() || !this.busquedaFecha) {
+      this.error = 'Ingresa el nombre y fecha de nacimiento del paciente.';
       return;
     }
+
     this.cargando = true;
     this.error = '';
 
-    this.clinicoService.getPerfil(this.perfilId).subscribe({
-      next: (data) => {
-        this.perfil = data;
-        this.evaluaciones = (data as any).evaluaciones || [];
-        this.cargando = false;
-        this.cdr.detectChanges();
+    this.clinicoService.getPerfiles().subscribe({
+      next: (data: any[]) => {
+        const encontrado = data.find((p: any) =>
+          p.nombre.toLowerCase().includes(this.busquedaNombre.toLowerCase().trim()) &&
+          p.fecha_nacimiento === this.busquedaFecha
+        );
+
+        if (encontrado) {
+          this.perfil = encontrado;
+          this.evaluaciones = (encontrado as any).evaluaciones || [];
+          this.perfilId = (encontrado as any).id || '';
+          this.cargando = false;
+          this.cdr.detectChanges();
+        } else {
+          this.error = 'No se encontró ningún paciente con esos datos.';
+          this.perfil = null;
+          this.cargando = false;
+          this.cdr.detectChanges();
+        }
       },
       error: () => {
-        this.error = 'No se encontró el perfil. Verifica el ID.';
+        this.error = 'Error al buscar. Verifica que el backend esté corriendo.';
         this.cargando = false;
-        this.perfil = null;
         this.cdr.detectChanges();
       }
     });
@@ -417,14 +436,35 @@ export class ExpedienteComponent {
     });
 
     // Evaluaciones
+    // Plan terapéutico
+    // Plan terapéutico
+    const y2 = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PLAN TERAPÉUTICO', 14, y2);
+
+    autoTable(doc, {
+      startY: y2 + 4,
+      head: [['Campo', 'Detalle']],
+      body: [
+        ['Objetivos', p.objetivos || 'N/A'],
+        ['Historial médico', p.historial_medico || 'N/A'],
+        ['Notas adicionales', p.notas_adicionales || 'N/A'],
+        ['Restricciones', p.restricciones || 'N/A'],
+      ],
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [0, 167, 129] },
+    });
+
+    // Evaluaciones
     if (this.evaluaciones.length > 0) {
-      const y2 = (doc as any).lastAutoTable.finalY + 10;
+      const y3 = (doc as any).lastAutoTable.finalY + 10;
       doc.setFontSize(13);
       doc.setFont('helvetica', 'bold');
-      doc.text('EVALUACIONES CLÍNICAS', 14, y2);
+      doc.text('EVALUACIONES CLÍNICAS', 14, y3);
 
       autoTable(doc, {
-        startY: y2 + 4,
+        startY: y3 + 4,
         head: [['Fecha', 'FMA', 'TUG (seg)', 'BBS', 'MoCA', 'SS-QOL', 'Observaciones']],
         body: this.evaluaciones.map(e => [
           new Date(e.created_at).toLocaleDateString('es-MX'),

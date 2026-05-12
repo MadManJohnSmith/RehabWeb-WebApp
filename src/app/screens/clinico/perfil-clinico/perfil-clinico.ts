@@ -110,7 +110,15 @@ import { ClinicoService } from '../../../services/clinico.service';
               <textarea [(ngModel)]="perfil.objetivos" name="objetivos" rows="3" placeholder="Describa los objetivos terapéuticos..." required></textarea>
             </div>
           </section>
-
+          <!-- NOTAS ADICIONALES -->
+          <section>
+            <h2>Notas Adicionales</h2>
+            <div class="field">
+              <label>Notas del terapeuta</label>
+              <textarea [(ngModel)]="perfil.notasAdicionales" name="notasAdicionales" 
+                rows="4" placeholder="Agregue cualquier nota clínica relevante del paciente..."></textarea>
+            </div>
+          </section>
           <!-- CONTACTO DE EMERGENCIA -->
           <!-- FAMILIAR RESPONSABLE -->
           <section>
@@ -388,7 +396,8 @@ export class PerfilClinicoComponent {
     familiarParentesco: '',
     familiarTel: '',
     clinica: '',
-    consentimiento: false
+    consentimiento: false,
+    notasAdicionales: ''
   };
 
   errores: any = {};
@@ -396,66 +405,98 @@ export class PerfilClinicoComponent {
   validar(): boolean {
     this.errores = {};
 
+    // Nombre
     if (!this.perfil.nombre.trim()) {
       this.errores.nombre = 'El nombre es obligatorio.';
-    } else if (/\d/.test(this.perfil.nombre)) {
-      this.errores.nombre = 'El nombre no puede contener números.';
+    } else if (!/^[a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]+$/.test(this.perfil.nombre.trim())) {
+      this.errores.nombre = 'El nombre solo puede contener letras, acentos, ñ y espacios.';
+    } else if (this.perfil.nombre.trim().length < 3) {
+      this.errores.nombre = 'El nombre debe tener al menos 3 caracteres.';
     }
 
+    // Fecha de nacimiento
     if (!this.perfil.fechaNacimiento) {
       this.errores.fechaNacimiento = 'La fecha de nacimiento es obligatoria.';
     } else {
       const hoy = new Date();
       const nacimiento = new Date(this.perfil.fechaNacimiento);
+      const edad = hoy.getFullYear() - nacimiento.getFullYear();
       if (nacimiento >= hoy) {
         this.errores.fechaNacimiento = 'La fecha de nacimiento debe ser anterior a hoy.';
+      } else if (edad > 120) {
+        this.errores.fechaNacimiento = 'Fecha de nacimiento no válida.';
       }
     }
 
+    // Sexo
     if (!this.perfil.sexo) {
       this.errores.sexo = 'El sexo es obligatorio.';
     }
 
+    // Ubicación
     if (!this.perfil.ubicacion.trim()) {
       this.errores.ubicacion = 'La ubicación es obligatoria.';
+    } else if (this.perfil.ubicacion.trim().length < 3) {
+      this.errores.ubicacion = 'La ubicación debe tener al menos 3 caracteres.';
     }
 
+    // Diagnóstico
     if (!this.perfil.diagnostico.trim()) {
       this.errores.diagnostico = 'El diagnóstico es obligatorio.';
+    } else if (this.perfil.diagnostico.trim().length < 5) {
+      this.errores.diagnostico = 'El diagnóstico debe tener al menos 5 caracteres.';
     }
 
+    // Fecha ACV
     if (!this.perfil.fechaACV) {
       this.errores.fechaACV = 'La fecha del ACV es obligatoria.';
+    } else {
+      const hoy = new Date();
+      const fechaACV = new Date(this.perfil.fechaACV);
+      if (fechaACV > hoy) {
+        this.errores.fechaACV = 'La fecha del ACV no puede ser futura.';
+      }
     }
 
+    // Tipo ACV
     if (!this.perfil.tipoACV) {
       this.errores.tipoACV = 'El tipo de ACV es obligatorio.';
     }
 
+    // Nivel movilidad
     if (!this.perfil.nivelMovilidad) {
       this.errores.nivelMovilidad = 'El nivel de movilidad es obligatorio.';
     }
 
+    // Objetivos
     if (!this.perfil.objetivos.trim()) {
       this.errores.objetivos = 'Los objetivos son obligatorios.';
+    } else if (this.perfil.objetivos.trim().length < 10) {
+      this.errores.objetivos = 'Los objetivos deben tener al menos 10 caracteres.';
     }
 
+    // Familiar nombre
     if (!this.perfil.familiarNombre.trim()) {
       this.errores.familiarNombre = 'El nombre del familiar es obligatorio.';
-    } else if (/\d/.test(this.perfil.familiarNombre)) {
-      this.errores.familiarNombre = 'El nombre no puede contener números.';
+    } else if (!/^[a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]+$/.test(this.perfil.familiarNombre.trim())) {
+      this.errores.familiarNombre = 'El nombre solo puede contener letras, acentos, ñ y espacios.';
+    } else if (this.perfil.familiarNombre.trim().length < 3) {
+      this.errores.familiarNombre = 'El nombre debe tener al menos 3 caracteres.';
     }
 
+    // Familiar parentesco
     if (!this.perfil.familiarParentesco) {
       this.errores.familiarParentesco = 'El parentesco es obligatorio.';
     }
 
+    // Teléfono - exactamente 10 dígitos
     if (!this.perfil.familiarTel.trim()) {
       this.errores.familiarTel = 'El teléfono es obligatorio.';
-    } else if (!/^\d[\d\s]{7,}$/.test(this.perfil.familiarTel)) {
-      this.errores.familiarTel = 'El teléfono solo debe contener números.';
+    } else if (!/^\d{10}$/.test(this.perfil.familiarTel.replace(/\s/g, ''))) {
+      this.errores.familiarTel = 'El teléfono debe tener exactamente 10 dígitos.';
     }
 
+    // Consentimiento
     if (!this.perfil.consentimiento) {
       this.errores.consentimiento = 'Debes aceptar el consentimiento informado.';
     }
@@ -464,6 +505,8 @@ export class PerfilClinicoComponent {
   }
 
   guardar() {
+     console.log('Errores:', this.errores);
+    console.log('Válido:', this.validar());
     if (!this.validar()) return;
 
     this.cargando = true;
@@ -487,7 +530,8 @@ export class PerfilClinicoComponent {
       familiar_parentesco: this.perfil.familiarParentesco,
       familiar_tel: this.perfil.familiarTel,
       clinica: this.perfil.clinica,
-      consentimiento: this.perfil.consentimiento
+      consentimiento: this.perfil.consentimiento,
+      notas_adicionales: this.perfil.notasAdicionales
     };
 
     this.clinicoService.crearPerfil(datos).subscribe({
@@ -517,7 +561,8 @@ export class PerfilClinicoComponent {
       comorbilidades: '', medicamentos: '', historialMedico: '',
       restricciones: '', objetivos: '', familiarNombre: '',
       familiarParentesco: '', familiarTel: '', clinica: '',
-      consentimiento: false
+      consentimiento: false,
+      notasAdicionales: ''
     };
   }
 }

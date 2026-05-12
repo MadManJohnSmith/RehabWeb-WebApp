@@ -28,6 +28,25 @@ import { ClinicoService } from '../../../services/clinico.service';
               </small>
             </div>
           </section>
+          <!-- MODO EDICIÓN -->
+          <section>
+            <h2>Editar Evaluación Existente</h2>
+            <div class="grid-2">
+              <div class="field">
+                <label>ID de la Evaluación</label>
+                <input type="text" [(ngModel)]="evaluacionId" name="evaluacionId"
+                  placeholder="ID de la evaluación a editar" />
+              </div>
+              <div class="field" style="justify-content: flex-end;">
+                <button type="button" class="btn-secondary" (click)="cargarEvaluacion()">
+                  Cargar Evaluación
+                </button>
+              </div>
+            </div>
+            <div class="modo-edicion" *ngIf="modoEdicion">
+              ✏️ Modo edición activo — editando evaluación: <strong>{{ evaluacionId }}</strong>
+            </div>
+          </section>
 
           <!-- FMA -->
           <section>
@@ -322,6 +341,13 @@ import { ClinicoService } from '../../../services/clinico.service';
       color: #1A2B3E;
       font-size: 14px;
     }
+    .modo-edicion {
+      background: #FFF8EC;
+      color: #B45309;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 14px;
+    }
 
     .resumen {
       display: flex;
@@ -344,6 +370,8 @@ export class EvaluacionBaselineComponent {
 
   guardado = false;
   cargando = false;
+  modoEdicion = false;
+  evaluacionId = '';
   error = '';
   perfilId = '';
 
@@ -400,11 +428,6 @@ export class EvaluacionBaselineComponent {
   }
 
   guardar() {
-    if (!this.perfilId) {
-      this.error = 'Ingresa el ID del perfil clínico del paciente.';
-      return;
-    }
-
     this.cargando = true;
     this.error = '';
 
@@ -421,19 +444,34 @@ export class EvaluacionBaselineComponent {
       observaciones: this.evaluacion.observaciones
     };
 
-    this.clinicoService.crearEvaluacion(datos).subscribe({
-      next: () => {
-        this.guardado = true;
-        this.cargando = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.error = 'Error: ' + JSON.stringify(err.error);
-        this.cargando = false;
-        this.cdr.detectChanges();
-        console.error(err.error);
-      }
-    });
+    if (this.modoEdicion) {
+      this.clinicoService.actualizarEvaluacion(this.evaluacionId, datos).subscribe({
+        next: () => {
+          this.guardado = true;
+          this.modoEdicion = false;
+          this.cargando = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.error = 'Error al actualizar: ' + JSON.stringify(err.error);
+          this.cargando = false;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      this.clinicoService.crearEvaluacion(datos).subscribe({
+        next: () => {
+          this.guardado = true;
+          this.cargando = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.error = 'Error al guardar: ' + JSON.stringify(err.error);
+          this.cargando = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   limpiar() {
@@ -446,5 +484,45 @@ export class EvaluacionBaselineComponent {
       plan_cuidados: '', fecha_reevaluacion: '',
       observaciones: ''
     };
+  }
+  cargarEvaluacion() {
+    if (!this.evaluacionId.trim()) {
+      this.error = 'Ingresa el ID de la evaluación.';
+      return;
+    }
+    this.cargando = true;
+    this.error = '';
+
+    this.clinicoService.getEvaluaciones().subscribe({
+      next: (data) => {
+        const found = data.find((e: any) => e.id === this.evaluacionId);
+        if (found) {
+          this.evaluacion = {
+            fma: found.fma,
+            tug: found.tug,
+            bbs: found.bbs,
+            moca: found.moca,
+            ssqol: found.ssqol,
+            prognosis: found.prognosis || '',
+            plan_cuidados: found.plan_cuidados || '',
+            fecha_reevaluacion: found.fecha_reevaluacion || '',
+            observaciones: found.observaciones || ''
+          };
+          this.perfilId = found.perfil;
+          this.modoEdicion = true;
+          this.cargando = false;
+          this.cdr.detectChanges();
+        } else {
+          this.error = 'No se encontró la evaluación con ese ID.';
+          this.cargando = false;
+          this.cdr.detectChanges();
+        }
+      },
+      error: () => {
+        this.error = 'Error al buscar la evaluación.';
+        this.cargando = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

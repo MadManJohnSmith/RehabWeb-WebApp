@@ -1,0 +1,67 @@
+<div class="container">
+
+  <h1>Dashboard de Rehabilitación 📈</h1>
+
+<div *ngFor="let paciente of pacientes; let i = index" class="card">
+
+    <h2>{{ paciente.paciente }}</h2>
+    <canvas id="chart{{i}}"></canvas>
+
+    <p>
+      <strong>Diagnóstico:</strong>
+      {{ paciente.diagnostico }}
+    </p>
+
+    <div
+      *ngFor="let ev of paciente.evaluaciones"
+      class="sesion"
+      [ngClass]="ev.estado"
+    >
+
+      <h3>Sesión {{ ev.sesion_actual }}</h3>
+
+      <p>
+        <strong>ROM Hombro:</strong>
+        {{ ev.rom.hombro }}
+      </p>
+
+      <p>
+        <strong>ROM Codo:</strong>
+        {{ ev.rom.codo }}
+      </p>
+
+      <p>
+        <strong>ROM Rodilla:</strong>
+        {{ ev.rom.rodilla }}
+      </p>
+
+      <p>
+        <strong>Cambio Hombro:</strong>
+        {{ ev.cambios.hombro }}
+      </p>
+
+      <p>
+        <strong>Cambio Codo:</strong>
+        {{ ev.cambios.codo }}
+      </p>
+
+      <p>
+        <strong>Cambio Rodilla:</strong>
+        {{ ev.cambios.rodilla }}
+      </p>
+
+      <p>
+        <strong>Observaciones:</strong>
+        {{ ev.observaciones }}
+      </p>
+
+      <p>
+        <strong>Estado:</strong>
+        {{ ev.estado }}
+      </p>
+
+    </div>
+
+  </div>
+
+</div>

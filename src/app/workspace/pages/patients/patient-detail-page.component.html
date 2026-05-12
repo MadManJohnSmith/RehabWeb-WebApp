@@ -46,9 +46,9 @@
         </p>
         <div class="relative mt-4">
           <svg
-            class="h-56 w-full text-pm-ink dark:text-pm-ink-on-dark"
-            viewBox="0 0 360 200"
-            preserveAspectRatio="none"
+            class="h-64 w-full text-pm-ink dark:text-pm-ink-on-dark"
+            viewBox="0 0 600 240"
+            preserveAspectRatio="xMidYMid meet"
             (mouseleave)="clearTip()"
           >
             <defs>
@@ -57,7 +57,7 @@
                 <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
               </linearGradient>
             </defs>
-            <rect x="0" y="0" width="360" height="200" fill="url(#grid)" rx="12" />
+            <rect x="0" y="0" width="600" height="240" fill="url(#grid)" rx="12" />
             <polyline
               [attr.points]="linePointsForPatient(p.meta)"
               fill="none"

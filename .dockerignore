@@ -1,0 +1,17 @@
+node_modules/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+.angular/
+.angular/cache/
+coverage/
+npm-debug.log
+yarn-error.log
+.idea/
+.vscode/
+.git/
+.gitignore
+.DS_Store
+Thumbs.db
+*.log

@@ -56,7 +56,7 @@ export class PatientDetailPageComponent {
     if (!p) {
       return [];
     }
-    return this.dotsFromSeries(p.meta, p.real, 360, 200, 16);
+    return this.dotsFromSeries(p.meta, p.real, 600, 240, 24);
   });
 
   protected readonly chartTooltip = signal<{ x: number; y: number; text: string } | null>(null);
@@ -87,7 +87,7 @@ export class PatientDetailPageComponent {
     });
   }
 
-  linePointsForPatient(values: number[], width = 360, height = 200, pad = 16): string {
+  linePointsForPatient(values: number[], width = 600, height = 240, pad = 24): string {
     const p = this.patient();
     if (!p) {
       return '';

@@ -70,25 +70,46 @@ import { ClinicoService } from '../../../services/clinico.service';
               No hay citas agendadas para este día.
             </p>
 
-            <!-- FORMULARIO NUEVA CITA -->
+          <!-- FORMULARIO NUEVA CITA -->
             <div class="nueva-cita">
               <h3>Agendar nueva cita</h3>
-               <div class="field">
-                <label>ID del Perfil Clínico *</label>
-                <input type="text" [(ngModel)]="perfilId" name="perfilId" 
-                  placeholder="Ej. 8b95d6b5-507d-4406-8c96-6ca3670aadb9" />
-              </div>
+              
+              <!-- BÚSQUEDA DE PACIENTE -->
               <div class="grid-2">
                 <div class="field">
-                  <label>Paciente *</label>
-                  <input type="text" [(ngModel)]="nuevaCita.paciente" name="paciente" placeholder="Nombre del paciente" />
+                  <label>Buscar paciente por nombre</label>
+                  <input type="text" [(ngModel)]="busquedaNombre" name="busquedaNombre"
+                    placeholder="Nombre o apellido..." />
                 </div>
                 <div class="field">
+                  <label>&nbsp;</label>
+                  <button type="button" class="btn-primary" (click)="buscarPaciente()">
+                    🔍 Buscar Paciente
+                  </button>
+                </div>
+              </div>
+
+              <!-- RESULTADOS DE BÚSQUEDA -->
+              <div class="resultados" *ngIf="resultadosBusqueda.length > 0">
+                <p style="font-size:13px; color:#707E8C; margin:0;">Selecciona un paciente:</p>
+                <div class="resultado-item" *ngFor="let p of resultadosBusqueda"
+                  (click)="seleccionarPaciente(p)"
+                  [class.seleccionado]="perfilId === p.id">
+                  <strong>{{ p.nombre }}</strong>
+                  <span>{{ p.fecha_nacimiento }} — {{ p.diagnostico }}</span>
+                </div>
+              </div>
+
+              <div class="paciente-seleccionado" *ngIf="pacienteSeleccionado">
+                👤 <strong>{{ pacienteSeleccionado.nombre }}</strong> seleccionado
+              </div>
+
+              <p class="error" *ngIf="errorBusqueda">{{ errorBusqueda }}</p>
+
+              <div class="grid-2">
+                <div class="field">
                   <label>Hora *</label>
-                  <select [(ngModel)]="nuevaCita.hora" name="hora">
-                    <option value="">Seleccionar...</option>
-                    <option *ngFor="let h of horasDisponibles" [value]="h">{{ h }}</option>
-                  </select>
+                  <input type="time" [(ngModel)]="nuevaCita.hora" name="hora" />
                 </div>
                 <div class="field">
                   <label>Tipo de consulta *</label>
@@ -101,9 +122,11 @@ import { ClinicoService } from '../../../services/clinico.service';
                 </div>
                 <div class="field">
                   <label>Motivo (opcional)</label>
-                  <input type="text" [(ngModel)]="nuevaCita.motivo" name="motivo" placeholder="Máx. 100 caracteres" maxlength="100" />
+                  <input type="text" [(ngModel)]="nuevaCita.motivo" name="motivo" 
+                    placeholder="Máx. 100 caracteres" maxlength="100" />
                 </div>
               </div>
+
               <div class="actions">
                 <button class="btn-primary" (click)="agendarCita()" [disabled]="cargando()">
                   {{ cargando() ? 'Agendando...' : 'Agendar Cita' }}
@@ -345,6 +368,38 @@ import { ClinicoService } from '../../../services/clinico.service';
     }
     .btn-eliminar:hover { background: #FFF0F0; }
 
+    .resultados {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .resultado-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      padding: 0.75rem 1rem;
+      background: #F8FAFC;
+      border-radius: 8px;
+      border: 1px solid #E2E8F0;
+      cursor: pointer;
+      transition: all 200ms;
+      font-size: 14px;
+    }
+
+    .resultado-item:hover { background: #E6F6F2; border-color: #00A781; }
+    .resultado-item.seleccionado { background: #E6F6F2; border-color: #00A781; }
+    .resultado-item strong { color: #1A2B3E; }
+    .resultado-item span { font-size: 12px; color: #707E8C; }
+
+    .paciente-seleccionado {
+      background: #E6F6F2;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #1A2B3E;
+    }
+
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -403,6 +458,10 @@ export class CalendarioComponent implements OnInit {
   diaSeleccionado: number | null = null;
   error = '';
   perfilId = '';
+  busquedaNombre = '';
+  resultadosBusqueda: any[] = [];
+  pacienteSeleccionado: any = null;
+  errorBusqueda = '';
 
   nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -445,6 +504,36 @@ export class CalendarioComponent implements OnInit {
       next: (data) => this.citas.set(data),
       error: (err) => console.error(err)
     });
+  }
+
+  buscarPaciente() {
+    if (!this.busquedaNombre.trim()) {
+      this.errorBusqueda = 'Ingresa un nombre para buscar.';
+      return;
+    }
+    this.errorBusqueda = '';
+
+    this.clinicoService.getPerfiles().subscribe({
+      next: (data: any[]) => {
+        this.resultadosBusqueda = data.filter((p: any) =>
+          p.nombre.toLowerCase().includes(this.busquedaNombre.toLowerCase().trim())
+        );
+        if (this.resultadosBusqueda.length === 0) {
+          this.errorBusqueda = 'No se encontró ningún paciente con ese nombre.';
+        }
+      },
+      error: () => {
+        this.errorBusqueda = 'Error al buscar paciente.';
+      }
+    });
+  }
+
+  seleccionarPaciente(paciente: any) {
+    this.pacienteSeleccionado = paciente;
+    this.perfilId = paciente.id;
+    this.resultadosBusqueda = [];
+    this.busquedaNombre = paciente.nombre;
+    this.errorBusqueda = '';
   }
 
   esHoy(dia: number) {
@@ -517,7 +606,7 @@ export class CalendarioComponent implements OnInit {
     const datos = {
       perfil: this.perfilId,
       fecha: fecha,
-      hora: this.nuevaCita.hora + ':00',
+      hora: this.nuevaCita.hora.length === 5 ? this.nuevaCita.hora + ':00' : this.nuevaCita.hora,
       tipo: this.nuevaCita.tipo,
       motivo: this.nuevaCita.motivo,
       estado: 'Pendiente'

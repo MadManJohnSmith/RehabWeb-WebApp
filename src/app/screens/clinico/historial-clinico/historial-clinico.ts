@@ -82,37 +82,42 @@ import autoTable from 'jspdf-autotable';
             <div class="tabla-wrap">
               <table>
                 <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>FMA</th>
-                    <th>TUG (seg)</th>
-                    <th>BBS</th>
-                    <th>MoCA</th>
-                    <th>SS-QOL</th>
-                    <th>Tendencia</th>
-                    <th>Notas</th>
-                  </tr>
-                </thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Fecha</th>
+                      <th>FMA</th>
+                      <th>TUG (seg)</th>
+                      <th>BBS</th>
+                      <th>MoCA</th>
+                      <th>SS-QOL</th>
+                      <th>Tendencia</th>
+                      <th>Notas</th>
+                    </tr>
+                  </thead>
                 <tbody>
-                  <!-- FIX: evaluacionesFiltradas() con paréntesis -->
-                  <tr *ngFor="let e of evaluacionesFiltradas(); let i = index">
-                    <td>{{ e.fecha }}</td>
-                    <td>{{ e.fma }}</td>
-                    <td>{{ e.tug }}</td>
-                    <td>{{ e.bbs }}</td>
-                    <td>{{ e.moca }}</td>
-                    <td>{{ e.ssqol }}</td>
-                    <td>
-                      <span class="tendencia"
-                        [class.positiva]="i > 0 && e.fma > evaluacionesFiltradas()[i-1].fma"
-                        [class.negativa]="i > 0 && e.fma < evaluacionesFiltradas()[i-1].fma"
-                        [class.neutral]="i === 0 || e.fma === evaluacionesFiltradas()[i-1].fma">
-                        {{ i === 0 ? '—' : (e.fma > evaluacionesFiltradas()[i-1].fma ? '↑ Mejora' : e.fma < evaluacionesFiltradas()[i-1].fma ? '↓ Deterioro' : '→ Estable') }}
-                      </span>
-                    </td>
-                    <td class="notas">{{ e.notas }}</td>
-                  </tr>
-                </tbody>
+                <tr *ngFor="let e of evaluacionesFiltradas(); let i = index">                  
+                  <td>
+                    <span class="id-badge" (click)="copiarID(e.id)" title="Click para copiar">
+                      {{ e.id?.slice(0,8) }}...
+                    </span>
+                  </td>
+                  <td>{{ e.fecha }}</td>
+                  <td>{{ e.fma }}</td>
+                  <td>{{ e.tug }}</td>
+                  <td>{{ e.bbs }}</td>
+                  <td>{{ e.moca }}</td>
+                  <td>{{ e.ssqol }}</td>
+                  <td>
+                    <span class="tendencia"
+                      [class.positiva]="i > 0 && e.fma > evaluacionesFiltradas()[i-1].fma"
+                      [class.negativa]="i > 0 && e.fma < evaluacionesFiltradas()[i-1].fma"
+                      [class.neutral]="i === 0 || e.fma === evaluacionesFiltradas()[i-1].fma">
+                      {{ i === 0 ? '—' : (e.fma > evaluacionesFiltradas()[i-1].fma ? '↑ Mejora' : e.fma < evaluacionesFiltradas()[i-1].fma ? '↓ Deterioro' : '→ Estable') }}
+                    </span>
+                  </td>
+                  <td class="notas">{{ e.notas }}</td>
+                </tr>
+              </tbody>
               </table>
             </div>
           </section>
@@ -180,6 +185,17 @@ import autoTable from 'jspdf-autotable';
       color: white;
       padding: 2rem;
     }
+    .id-badge {
+      font-size: 11px;
+      background: #E6F6F2;
+      color: #00A781;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: monospace;
+    }
+
+    .id-badge:hover { background: #00A781; color: white; }
 
     .card-header h1 { margin: 0 0 0.5rem; font-size: 24px; font-weight: 700; }
     .card-header p { margin: 0; font-size: 14px; opacity: 0.9; }
@@ -429,19 +445,16 @@ export class HistorialClinicoComponent implements OnInit {
 
         if (encontrado) {
           this.pacienteEncontrado.set(encontrado);
-          this.evaluaciones.set(
-            (encontrado.evaluaciones || [])
-              .map((e: any) => ({
-                fecha: new Date(e.created_at).toLocaleDateString('es-MX'),
-                fma: e.fma ?? 0,
-                tug: e.tug ?? 0,
-                bbs: e.bbs ?? 0,
-                moca: e.moca ?? 0,
-                ssqol: e.ssqol ?? 0,
-                notas: e.observaciones || ''
-              }))
-              .reverse()
-          );
+          this.evaluaciones.set((encontrado.evaluaciones || []).map((e: any) => {
+  console.log('Evaluación completa:', e);
+  return {
+    id: e.id,
+    fecha: new Date(e.created_at).toLocaleDateString('es-MX'),
+    fma: e.fma, tug: e.tug, bbs: e.bbs,
+    moca: e.moca, ssqol: e.ssqol,
+    notas: e.observaciones || ''
+  };
+}).reverse());
         } else {
           this.error.set('No se encontró ningún paciente con esos datos.');
         }
@@ -456,6 +469,10 @@ export class HistorialClinicoComponent implements OnInit {
         this.cargando.set(false);
       }
     });
+  }
+  copiarID(id: string) {
+    navigator.clipboard.writeText(id);
+    alert('ID copiado: ' + id);
   }
 
   agregarNota() {

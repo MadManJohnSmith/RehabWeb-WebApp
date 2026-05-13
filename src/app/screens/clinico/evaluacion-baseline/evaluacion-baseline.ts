@@ -17,18 +17,30 @@ import { ClinicoService } from '../../../services/clinico.service';
 
         <form class="form" (ngSubmit)="guardar()">
           <!-- ID DEL PERFIL -->
+          <!-- BÚSQUEDA DE PACIENTE -->
           <section>
             <h2>Paciente</h2>
-            <div class="field">
-              <label>ID del Perfil Clínico *</label>
-              <input type="text" [(ngModel)]="perfilId" name="perfilId" 
-                placeholder="Ej. 8b95d6b5-507d-4406-8c96-6ca3670aadb9" />
-              <small style="color:#707E8C; font-size:12px;">
-                Puedes encontrar el ID en el folio generado al guardar el perfil clínico.
-              </small>
+            <div class="grid-2">
+              <div class="field">
+                <label>Nombre del paciente</label>
+                <input type="text" [(ngModel)]="busquedaNombre" name="busquedaNombre"
+                  placeholder="Nombre o apellido..." />
+              </div>
+              <div class="field">
+                <label>Fecha de nacimiento</label>
+                <input type="date" [(ngModel)]="busquedaFecha" name="busquedaFecha" />
+              </div>
             </div>
-          </section>
-          <!-- MODO EDICIÓN -->
+            <div class="actions" style="margin-top:0.5rem; justify-content:flex-start;">
+              <button type="button" class="btn-secondary" (click)="buscarPaciente()" [disabled]="cargando">
+                Buscar Paciente
+              </button>
+            </div>
+            <p class="error" *ngIf="errorBusqueda">{{ errorBusqueda }}</p>
+            <div class="paciente-info" *ngIf="pacienteNombre">
+              👤 <strong>{{ pacienteNombre }}</strong> encontrado correctamente.
+            </div>
+          </section>          <!-- MODO EDICIÓN -->
           <section>
             <h2>Editar Evaluación Existente</h2>
             <div class="grid-2">
@@ -166,7 +178,7 @@ import { ClinicoService } from '../../../services/clinico.service';
               {{ cargando ? 'Guardando...' : 'Guardar Evaluación Baseline' }}
             </button>
           </div>
-          <p class="error" *ngIf="error">{{ error }}</p>
+          <pre class="error" *ngIf="error">{{ error }}</pre>
         </form>
 
         <!-- CONFIRMACIÓN -->
@@ -202,7 +214,12 @@ import { ClinicoService } from '../../../services/clinico.service';
       box-shadow: 0 1px 3px rgba(0,0,0,0.10);
       overflow: hidden;
     }
-
+      pre.error {
+      white-space: pre-wrap;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      margin: 0;
+    }
     .card-header {
       background: #00A781;
       color: white;
@@ -247,6 +264,13 @@ import { ClinicoService } from '../../../services/clinico.service';
       font-weight: 600;
       padding: 0.2rem 0.6rem;
       border-radius: 9999px;
+    }
+    .paciente-info {
+      background: #E6F6F2;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #1A2B3E;
     }
 
     .hint {
@@ -374,6 +398,10 @@ export class EvaluacionBaselineComponent {
   evaluacionId = '';
   error = '';
   perfilId = '';
+  busquedaNombre = '';
+  busquedaFecha = '';
+  errorBusqueda = '';
+  pacienteNombre = '';
 
   evaluacion = {
     fma: null as number | null,
@@ -426,6 +454,44 @@ export class EvaluacionBaselineComponent {
     if (v >= 123) return 'Calidad de vida moderada';
     return 'Calidad de vida baja';
   }
+  
+  buscarPaciente() {
+  if (!this.busquedaNombre.trim() && !this.busquedaFecha) {
+    this.errorBusqueda = 'Ingresa al menos el nombre o la fecha de nacimiento.';
+    return;
+  }
+  this.cargando = true;
+  this.errorBusqueda = '';
+  this.pacienteNombre = '';
+
+  this.clinicoService.getPerfiles().subscribe({
+    next: (data: any[]) => {
+      const encontrado = data.find((p: any) => {
+        const nombreMatch = this.busquedaNombre.trim()
+          ? p.nombre.toLowerCase().includes(this.busquedaNombre.toLowerCase().trim())
+          : true;
+        const fechaMatch = this.busquedaFecha
+          ? p.fecha_nacimiento === this.busquedaFecha
+          : true;
+        return nombreMatch && fechaMatch;
+      });
+
+      if (encontrado) {
+        this.perfilId = encontrado.id;
+        this.pacienteNombre = encontrado.nombre;
+      } else {
+        this.errorBusqueda = 'No se encontró ningún paciente con esos datos.';
+      }
+      this.cargando = false;
+      this.cdr.detectChanges();
+    },
+    error: () => {
+      this.errorBusqueda = 'Error al buscar paciente.';
+      this.cargando = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
 
   guardar() {
     this.cargando = true;
@@ -466,7 +532,13 @@ export class EvaluacionBaselineComponent {
           this.cdr.detectChanges();
         },
         error: (err) => {
-          this.error = 'Error al guardar: ' + JSON.stringify(err.error);
+          const campos: Record<string, string> = {
+            fma: 'FMA', tug: 'TUG', bbs: 'BBS', moca: 'MoCA', ssqol: 'SS-QOL'
+          };
+          const mensajes = Object.entries(err.error)
+            .map(([k, v]) => `• ${campos[k] || k}: ${(v as string[]).join(', ')}`)
+            .join('\n');
+          this.error = 'Completa los siguientes campos antes de guardar:\n' + mensajes;
           this.cargando = false;
           this.cdr.detectChanges();
         }

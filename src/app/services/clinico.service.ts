@@ -82,6 +82,7 @@ export class ClinicoService {
   crearEvaluacion(evaluacion: EvaluacionBaseline): Observable<EvaluacionBaseline> {
     return this.http.post<EvaluacionBaseline>(`${API}/evaluaciones/`, evaluacion);
   }
+  
 
   // Citas
   getCitas(): Observable<Cita[]> {
@@ -101,5 +102,5 @@ export class ClinicoService {
   }
   actualizarEvaluacion(id: string, evaluacion: any): Observable<any> {
     return this.http.put<any>(`${API}/evaluaciones/${id}/`, evaluacion);
-  }
+  } 
 }

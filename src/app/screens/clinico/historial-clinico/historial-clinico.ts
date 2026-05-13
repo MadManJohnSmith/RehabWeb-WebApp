@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClinicoService } from '../../../services/clinico.service';
@@ -19,29 +19,45 @@ import autoTable from 'jspdf-autotable';
 
         <div class="content">
 
-          <!-- FILTROS -->
-          <div class="filtros">
-            <div class="field">
-              <label>Buscar paciente</label>
-              <input type="text" [(ngModel)]="busqueda" name="busqueda" placeholder="Nombre o folio..." />
+          <!-- BÚSQUEDA -->
+          <section>
+            <h2>Buscar Paciente</h2>
+            <div class="filtros">
+              <div class="field">
+                <label>Nombre del paciente</label>
+                <input type="text" [(ngModel)]="busquedaNombre" name="busquedaNombre"
+                  placeholder="Nombre o apellido..." />
+              </div>
+              <div class="field">
+                <label>Fecha de nacimiento</label>
+                <input type="date" [(ngModel)]="busquedaFecha" name="busquedaFecha" />
+              </div>
             </div>
-            <div class="field">
-              <label>Filtrar por período</label>
-              <select [(ngModel)]="periodo" name="periodo">
-                <option value="todas">Todas</option>
-                <option value="semana">Última semana</option>
-                <option value="mes">Último mes</option>
-                <option value="trimestre">Últimos 3 meses</option>
-              </select>
+            <div class="actions" style="margin-top: 0.5rem;">
+              <!-- FIX: cargando() con paréntesis -->
+              <button class="btn-primary" (click)="buscarPaciente()" [disabled]="cargando()">
+                {{ cargando() ? 'Buscando...' : 'Buscar Paciente' }}
+              </button>
             </div>
+            <!-- FIX: error() con paréntesis -->
+            <p class="error" *ngIf="error()">{{ error() }}</p>
+          </section>
+
+          <!-- INFO PACIENTE -->
+          <!-- FIX: pacienteEncontrado() con paréntesis en todos los bindings -->
+          <div class="paciente-info" *ngIf="pacienteEncontrado()">
+            <span>👤 <strong>{{ pacienteEncontrado()?.nombre }}</strong></span>
+            <span>📅 {{ pacienteEncontrado()?.fecha_nacimiento }}</span>
+            <span>🏥 {{ pacienteEncontrado()?.diagnostico }}</span>
           </div>
 
           <!-- GRÁFICO DE TENDENCIA -->
           <section>
-            <h2>Evolución FMA — Últimas 6 evaluaciones</h2>
+            <h2>Evolución FMA — Últimas evaluaciones</h2>
             <div class="grafico">
               <div class="barras">
-                <div class="barra-wrap" *ngFor="let e of evaluacionesFiltradas">
+                <!-- FIX: usar evaluacionesFiltradas() con paréntesis (ahora es computed signal) -->
+                <div class="barra-wrap" *ngFor="let e of evaluacionesFiltradas()">
                   <div class="barra" [style.height.%]="(e.fma / 226) * 100"
                     [class.mejora]="e.fma >= 150"
                     [class.regular]="e.fma >= 75 && e.fma < 150"
@@ -78,7 +94,8 @@ import autoTable from 'jspdf-autotable';
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let e of evaluacionesFiltradas; let i = index">
+                  <!-- FIX: evaluacionesFiltradas() con paréntesis -->
+                  <tr *ngFor="let e of evaluacionesFiltradas(); let i = index">
                     <td>{{ e.fecha }}</td>
                     <td>{{ e.fma }}</td>
                     <td>{{ e.tug }}</td>
@@ -87,10 +104,10 @@ import autoTable from 'jspdf-autotable';
                     <td>{{ e.ssqol }}</td>
                     <td>
                       <span class="tendencia"
-                        [class.positiva]="i > 0 && e.fma > evaluacionesFiltradas[i-1].fma"
-                        [class.negativa]="i > 0 && e.fma < evaluacionesFiltradas[i-1].fma"
-                        [class.neutral]="i === 0 || e.fma === evaluacionesFiltradas[i-1].fma">
-                        {{ i === 0 ? '—' : (e.fma > evaluacionesFiltradas[i-1].fma ? '↑ Mejora' : e.fma < evaluacionesFiltradas[i-1].fma ? '↓ Deterioro' : '→ Estable') }}
+                        [class.positiva]="i > 0 && e.fma > evaluacionesFiltradas()[i-1].fma"
+                        [class.negativa]="i > 0 && e.fma < evaluacionesFiltradas()[i-1].fma"
+                        [class.neutral]="i === 0 || e.fma === evaluacionesFiltradas()[i-1].fma">
+                        {{ i === 0 ? '—' : (e.fma > evaluacionesFiltradas()[i-1].fma ? '↑ Mejora' : e.fma < evaluacionesFiltradas()[i-1].fma ? '↓ Deterioro' : '→ Estable') }}
                       </span>
                     </td>
                     <td class="notas">{{ e.notas }}</td>
@@ -101,9 +118,12 @@ import autoTable from 'jspdf-autotable';
           </section>
 
           <!-- ALERTAS -->
-          <section *ngIf="alertas.length > 0">
+          <!-- FIX: alertas() con paréntesis -->
+          <section *ngIf="alertas().length > 0">
             <h2>Alertas Clínicas</h2>
-            <div class="alerta" *ngFor="let a of alertas" [class.alerta-roja]="a.tipo === 'danger'" [class.alerta-amarilla]="a.tipo === 'warning'">
+            <div class="alerta" *ngFor="let a of alertas()"
+              [class.alerta-roja]="a.tipo === 'danger'"
+              [class.alerta-amarilla]="a.tipo === 'warning'">
               <span class="alerta-icon">{{ a.tipo === 'danger' ? '🔴' : '🟡' }}</span>
               <span>{{ a.mensaje }}</span>
             </div>
@@ -121,7 +141,7 @@ import autoTable from 'jspdf-autotable';
               <button class="btn-primary" (click)="agregarNota()">Agregar Nota</button>
             </div>
           </section>
-          
+
           <!-- EXPORTAR REPORTE -->
           <section>
             <h2>Exportar Reporte</h2>
@@ -171,6 +191,17 @@ import autoTable from 'jspdf-autotable';
       gap: 2rem;
     }
 
+    .paciente-info {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      background: #E6F6F2;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #1A2B3E;
+    }
+
     .filtros {
       display: grid;
       grid-template-columns: 2fr 1fr;
@@ -192,12 +223,7 @@ import autoTable from 'jspdf-autotable';
       border-bottom: 2px solid #E6F6F2;
     }
 
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
+    .field { display: flex; flex-direction: column; gap: 0.4rem; }
     label { font-size: 14px; font-weight: 500; color: #1A2B3E; }
 
     input, select, textarea {
@@ -218,7 +244,6 @@ import autoTable from 'jspdf-autotable';
       box-shadow: 0 0 0 2px rgba(0,167,129,0.15);
     }
 
-    /* GRÁFICO */
     .grafico {
       display: flex;
       gap: 1rem;
@@ -270,14 +295,9 @@ import autoTable from 'jspdf-autotable';
     .barra-valor { font-size: 12px; font-weight: 600; color: #1A2B3E; }
     .barra-fecha { font-size: 10px; color: #707E8C; }
 
-    /* TABLA */
     .tabla-wrap { overflow-x: auto; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
 
     th {
       background: #F8FAFC;
@@ -309,7 +329,6 @@ import autoTable from 'jspdf-autotable';
 
     .notas { font-size: 12px; color: #707E8C; max-width: 200px; }
 
-    /* ALERTAS */
     .alerta {
       display: flex;
       align-items: center;
@@ -322,10 +341,7 @@ import autoTable from 'jspdf-autotable';
     .alerta-roja { background: #FFF0F0; color: #FF5C5C; }
     .alerta-amarilla { background: #FFF8EC; color: #B45309; }
 
-    .actions {
-      display: flex;
-      justify-content: flex-end;
-    }
+    .actions { display: flex; justify-content: flex-end; }
 
     .btn-primary {
       background: #00A781;
@@ -340,6 +356,9 @@ import autoTable from 'jspdf-autotable';
     }
 
     .btn-primary:hover { background: #009470; }
+    .btn-primary:disabled { background: #7ECDB8; cursor: not-allowed; }
+
+    .error { color: #FF5C5C; font-size: 14px; margin: 0; }
 
     textarea { resize: vertical; }
 
@@ -350,53 +369,25 @@ import autoTable from 'jspdf-autotable';
 })
 export class HistorialClinicoComponent implements OnInit {
   private clinicoService = inject(ClinicoService);
-  private cdr = inject(ChangeDetectorRef);
 
-  busqueda = '';
-  periodo = 'todas';
+  busquedaNombre = '';
+  busquedaFecha = '';
   nuevaNota = '';
-  cargando = false;
-  error = '';
 
-  evaluaciones: any[] = [];
+  cargando = signal(false);
+  error = signal('');
+  pacienteEncontrado = signal<any>(null);
+  evaluaciones = signal<any[]>([]);
 
-  ngOnInit() {
-    this.cargarEvaluaciones();
-  }
+  // FIX: computed signal en vez de getter — se actualiza reactivamente con las señales
+  evaluacionesFiltradas = computed(() => this.evaluaciones());
 
-  cargarEvaluaciones() {
-    this.cargando = true;
-    this.clinicoService.getEvaluaciones().subscribe({
-      next: (data) => {
-        this.evaluaciones = data.map((e: any, i: number, arr: any[]) => ({
-          fecha: new Date(e.created_at).toLocaleDateString('es-MX'),
-          fma: e.fma,
-          tug: e.tug,
-          bbs: e.bbs,
-          moca: e.moca,
-          ssqol: e.ssqol,
-          notas: e.observaciones || ''
-        })).reverse();
-        this.cargando = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.error = 'Error al cargar evaluaciones.';
-        this.cargando = false;
-        this.cdr.detectChanges();
-        console.error(err);
-      }
-    });
-  }
-
-  get evaluacionesFiltradas() {
-    return this.evaluaciones;
-  }
-
-  get alertas() {
-    const alertas = [];
-    const ultima = this.evaluaciones[this.evaluaciones.length - 1];
-    const penultima = this.evaluaciones[this.evaluaciones.length - 2];
+  // FIX: computed signal en vez de getter — antes era un getter normal que no era reactivo
+  alertas = computed(() => {
+    const lista = this.evaluaciones();
+    const ultima = lista[lista.length - 1];
+    const penultima = lista[lista.length - 2];
+    const alertas: { tipo: string; mensaje: string }[] = [];
 
     if (ultima && penultima && (ultima.fma - penultima.fma) < -5) {
       alertas.push({ tipo: 'danger', mensaje: 'Deterioro significativo en FMA: descenso de más de 5 puntos.' });
@@ -408,13 +399,73 @@ export class HistorialClinicoComponent implements OnInit {
       alertas.push({ tipo: 'warning', mensaje: 'Deterioro cognitivo detectado: MoCA menor a 18 puntos.' });
     }
     return alertas;
+  });
+
+  ngOnInit() {}
+
+  buscarPaciente() {
+    if (!this.busquedaNombre.trim() && !this.busquedaFecha) {
+      this.error.set('Ingresa al menos el nombre o la fecha de nacimiento.');
+      return;
+    }
+
+    this.cargando.set(true);
+    this.error.set('');
+    // FIX: limpiar resultados anteriores antes de buscar
+    this.pacienteEncontrado.set(null);
+    this.evaluaciones.set([]);
+
+    this.clinicoService.getPerfiles().subscribe({
+      next: (data: any[]) => {
+        const encontrado = data.find((p: any) => {
+          const nombreMatch = this.busquedaNombre.trim()
+            ? p.nombre.toLowerCase().includes(this.busquedaNombre.toLowerCase().trim())
+            : true;
+          const fechaMatch = this.busquedaFecha
+            ? p.fecha_nacimiento === this.busquedaFecha
+            : true;
+          return nombreMatch && fechaMatch;
+        });
+
+        if (encontrado) {
+          this.pacienteEncontrado.set(encontrado);
+          this.evaluaciones.set(
+            (encontrado.evaluaciones || [])
+              .map((e: any) => ({
+                fecha: new Date(e.created_at).toLocaleDateString('es-MX'),
+                fma: e.fma ?? 0,
+                tug: e.tug ?? 0,
+                bbs: e.bbs ?? 0,
+                moca: e.moca ?? 0,
+                ssqol: e.ssqol ?? 0,
+                notas: e.observaciones || ''
+              }))
+              .reverse()
+          );
+        } else {
+          this.error.set('No se encontró ningún paciente con esos datos.');
+        }
+
+        // FIX: siempre se ejecuta, dentro del next
+        this.cargando.set(false);
+      },
+      error: (err) => {
+        console.error('Error al buscar paciente:', err);
+        this.error.set('Error al buscar paciente. Intenta de nuevo.');
+        // FIX: también se resetea en el error
+        this.cargando.set(false);
+      }
+    });
   }
 
   agregarNota() {
     if (!this.nuevaNota.trim()) return;
+
     const hoy = new Date().toLocaleDateString('es-MX');
-    const ultima = this.evaluaciones[this.evaluaciones.length - 1];
-    this.evaluaciones.push({
+    const lista = this.evaluaciones();
+    const ultima = lista[lista.length - 1];
+
+    this.evaluaciones.update(list => [...list, {
       fecha: hoy,
       fma: ultima?.fma || 0,
       tug: ultima?.tug || 0,
@@ -422,14 +473,14 @@ export class HistorialClinicoComponent implements OnInit {
       moca: ultima?.moca || 0,
       ssqol: ultima?.ssqol || 0,
       notas: this.nuevaNota
-    });
+    }]);
+
     this.nuevaNota = '';
-    this.cdr.detectChanges();
   }
+
   exportarReporte() {
     const doc = new jsPDF();
 
-    // Header
     doc.setFillColor(0, 167, 129);
     doc.rect(0, 0, 210, 35, 'F');
     doc.setTextColor(255, 255, 255);
@@ -441,34 +492,35 @@ export class HistorialClinicoComponent implements OnInit {
     doc.text('RehabWeb — Plataforma de Rehabilitación Digital', 14, 22);
     doc.text(`Generado: ${new Date().toLocaleDateString('es-MX')}`, 14, 29);
 
-    // Tabla de evaluaciones
+    const paciente = this.pacienteEncontrado();
+    if (paciente) {
+      doc.setTextColor(26, 43, 62);
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Paciente: ${paciente.nombre}`, 14, 48);
+    }
+
     doc.setTextColor(26, 43, 62);
     doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
-    doc.text('REGISTRO DE EVALUACIONES', 14, 48);
+    doc.text('REGISTRO DE EVALUACIONES', 14, 56);
 
+    const evs = this.evaluaciones();
     autoTable(doc, {
-      startY: 52,
+      startY: 60,
       head: [['Fecha', 'FMA', 'TUG (seg)', 'BBS', 'MoCA', 'SS-QOL', 'Tendencia', 'Notas']],
-      body: this.evaluaciones.map((e, i, arr) => [
-        e.fecha,
-        e.fma,
-        e.tug,
-        e.bbs,
-        e.moca,
-        e.ssqol,
-        i === 0 ? '—' : e.fma > arr[i-1].fma ? '↑ Mejora' : e.fma < arr[i-1].fma ? '↓ Deterioro' : '→ Estable',
+      body: evs.map((e, i, arr) => [
+        e.fecha, e.fma, e.tug, e.bbs, e.moca, e.ssqol,
+        i === 0 ? '—' : e.fma > arr[i - 1].fma ? '↑ Mejora' : e.fma < arr[i - 1].fma ? '↓ Deterioro' : '→ Estable',
         e.notas || 'N/A'
       ]),
       styles: { fontSize: 9 },
       headStyles: { fillColor: [0, 167, 129] },
     });
 
-    // Footer
     doc.setFontSize(8);
     doc.setTextColor(112, 126, 140);
     doc.text('Reporte generado por RehabWeb | NOM-004-SSA3-2012', 14, 290);
-
     doc.save(`reporte-historial-${new Date().toLocaleDateString('es-MX')}.pdf`);
   }
 }

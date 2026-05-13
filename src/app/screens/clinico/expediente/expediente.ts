@@ -437,7 +437,6 @@ private cdr = inject(ChangeDetectorRef);
 
     // Evaluaciones
     // Plan terapéutico
-    // Plan terapéutico
     const y2 = (doc as any).lastAutoTable.finalY + 10;
     doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');

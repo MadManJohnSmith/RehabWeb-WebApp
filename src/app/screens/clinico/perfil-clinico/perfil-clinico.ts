@@ -44,6 +44,13 @@ import { ClinicoService } from '../../../services/clinico.service';
                 <label>Ubicación *</label>
                 <input type="text" [(ngModel)]="perfil.ubicacion" name="ubicacion" placeholder="Ej. Ciudad de México" required />
               </div>
+              <div class="field">
+                <label>Estado del paciente *</label>
+                <select [(ngModel)]="perfil.estado" name="estado" required>
+                  <option value="Activo">Activo</option>
+                  <option value="Inactivo">Inactivo</option>
+                </select>
+              </div>
             </div>
           </section>
 
@@ -397,7 +404,8 @@ export class PerfilClinicoComponent {
     familiarTel: '',
     clinica: '',
     consentimiento: false,
-    notasAdicionales: ''
+    notasAdicionales: '',
+    estado: 'Activo'
   };
 
   errores: any = {};
@@ -531,7 +539,8 @@ export class PerfilClinicoComponent {
       familiar_tel: this.perfil.familiarTel,
       clinica: this.perfil.clinica,
       consentimiento: this.perfil.consentimiento,
-      notas_adicionales: this.perfil.notasAdicionales
+      notas_adicionales: this.perfil.notasAdicionales,
+      estado: this.perfil.estado
     };
 
     this.clinicoService.crearPerfil(datos).subscribe({
@@ -562,7 +571,8 @@ export class PerfilClinicoComponent {
       restricciones: '', objetivos: '', familiarNombre: '',
       familiarParentesco: '', familiarTel: '', clinica: '',
       consentimiento: false,
-      notasAdicionales: ''
+      notasAdicionales: '',
+      estado: 'Activo'
     };
   }
 }

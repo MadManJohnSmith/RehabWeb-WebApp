@@ -2,6 +2,8 @@ import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClinicoService } from '../../../services/clinico.service';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-historial-clinico',
@@ -117,6 +119,16 @@ import { ClinicoService } from '../../../services/clinico.service';
             </div>
             <div class="actions">
               <button class="btn-primary" (click)="agregarNota()">Agregar Nota</button>
+            </div>
+          </section>
+          
+          <!-- EXPORTAR REPORTE -->
+          <section>
+            <h2>Exportar Reporte</h2>
+            <div class="actions">
+              <button class="btn-primary" (click)="exportarReporte()">
+                📄 Exportar Reporte PDF
+              </button>
             </div>
           </section>
 
@@ -413,5 +425,50 @@ export class HistorialClinicoComponent implements OnInit {
     });
     this.nuevaNota = '';
     this.cdr.detectChanges();
+  }
+  exportarReporte() {
+    const doc = new jsPDF();
+
+    // Header
+    doc.setFillColor(0, 167, 129);
+    doc.rect(0, 0, 210, 35, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('REPORTE DE HISTORIAL CLÍNICO', 14, 15);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('RehabWeb — Plataforma de Rehabilitación Digital', 14, 22);
+    doc.text(`Generado: ${new Date().toLocaleDateString('es-MX')}`, 14, 29);
+
+    // Tabla de evaluaciones
+    doc.setTextColor(26, 43, 62);
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('REGISTRO DE EVALUACIONES', 14, 48);
+
+    autoTable(doc, {
+      startY: 52,
+      head: [['Fecha', 'FMA', 'TUG (seg)', 'BBS', 'MoCA', 'SS-QOL', 'Tendencia', 'Notas']],
+      body: this.evaluaciones.map((e, i, arr) => [
+        e.fecha,
+        e.fma,
+        e.tug,
+        e.bbs,
+        e.moca,
+        e.ssqol,
+        i === 0 ? '—' : e.fma > arr[i-1].fma ? '↑ Mejora' : e.fma < arr[i-1].fma ? '↓ Deterioro' : '→ Estable',
+        e.notas || 'N/A'
+      ]),
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [0, 167, 129] },
+    });
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(112, 126, 140);
+    doc.text('Reporte generado por RehabWeb | NOM-004-SSA3-2012', 14, 290);
+
+    doc.save(`reporte-historial-${new Date().toLocaleDateString('es-MX')}.pdf`);
   }
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClinicoService } from '../../../services/clinico.service';
@@ -32,7 +32,7 @@ import { ClinicoService } from '../../../services/clinico.service';
               </div>
             </div>
             <div class="actions" style="margin-top:0.5rem; justify-content:flex-start;">
-              <button type="button" class="btn-secondary" (click)="buscarPaciente()" [disabled]="cargando">
+              <button type="button" class="btn-secondary" (click)="buscarPaciente()" [disabled]="cargando()">
                 Buscar Paciente
               </button>
             </div>
@@ -40,7 +40,8 @@ import { ClinicoService } from '../../../services/clinico.service';
             <div class="paciente-info" *ngIf="pacienteNombre">
               👤 <strong>{{ pacienteNombre }}</strong> encontrado correctamente.
             </div>
-          </section>          <!-- MODO EDICIÓN -->
+          </section>        
+            <!-- MODO EDICIÓN -->
           <section>
             <h2>Editar Evaluación Existente</h2>
             <div class="grid-2">
@@ -174,8 +175,8 @@ import { ClinicoService } from '../../../services/clinico.service';
 
           <div class="actions">
             <button type="button" class="btn-secondary" (click)="limpiar()">Limpiar</button>
-            <button type="submit" class="btn-primary" [disabled]="cargando">
-              {{ cargando ? 'Guardando...' : 'Guardar Evaluación Baseline' }}
+            <button type="submit" class="btn-primary" [disabled]="cargando()">
+              {{ cargando() ? 'Guardando...' : 'Guardar Evaluación Baseline' }}
             </button>
           </div>
           <pre class="error" *ngIf="error">{{ error }}</pre>
@@ -393,7 +394,7 @@ export class EvaluacionBaselineComponent {
   private cdr = inject(ChangeDetectorRef);
 
   guardado = false;
-  cargando = false;
+  cargando = signal(false);
   modoEdicion = false;
   evaluacionId = '';
   error = '';
@@ -460,7 +461,7 @@ export class EvaluacionBaselineComponent {
     this.errorBusqueda = 'Ingresa al menos el nombre o la fecha de nacimiento.';
     return;
   }
-  this.cargando = true;
+  this.cargando.set(true);
   this.errorBusqueda = '';
   this.pacienteNombre = '';
 
@@ -482,19 +483,19 @@ export class EvaluacionBaselineComponent {
       } else {
         this.errorBusqueda = 'No se encontró ningún paciente con esos datos.';
       }
-      this.cargando = false;
+      this.cargando.set(false);
       this.cdr.detectChanges();
     },
     error: () => {
       this.errorBusqueda = 'Error al buscar paciente.';
-      this.cargando = false;
+      this.cargando.set(false);
       this.cdr.detectChanges();
     }
   });
 }
 
   guardar() {
-    this.cargando = true;
+    this.cargando.set(true);
     this.error = '';
 
     const datos = {
@@ -515,12 +516,12 @@ export class EvaluacionBaselineComponent {
         next: () => {
           this.guardado = true;
           this.modoEdicion = false;
-          this.cargando = false;
+          this.cargando.set(false);
           this.cdr.detectChanges();
         },
         error: (err) => {
           this.error = 'Error al actualizar: ' + JSON.stringify(err.error);
-          this.cargando = false;
+          this.cargando.set(false);
           this.cdr.detectChanges();
         }
       });
@@ -528,7 +529,7 @@ export class EvaluacionBaselineComponent {
       this.clinicoService.crearEvaluacion(datos).subscribe({
         next: () => {
           this.guardado = true;
-          this.cargando = false;
+          this.cargando.set(false);
           this.cdr.detectChanges();
         },
         error: (err) => {
@@ -539,7 +540,7 @@ export class EvaluacionBaselineComponent {
             .map(([k, v]) => `• ${campos[k] || k}: ${(v as string[]).join(', ')}`)
             .join('\n');
           this.error = 'Completa los siguientes campos antes de guardar:\n' + mensajes;
-          this.cargando = false;
+          this.cargando.set(false);
           this.cdr.detectChanges();
         }
       });
@@ -562,7 +563,7 @@ export class EvaluacionBaselineComponent {
       this.error = 'Ingresa el ID de la evaluación.';
       return;
     }
-    this.cargando = true;
+    this.cargando.set(false);
     this.error = '';
 
     this.clinicoService.getEvaluaciones().subscribe({
@@ -582,17 +583,17 @@ export class EvaluacionBaselineComponent {
           };
           this.perfilId = found.perfil;
           this.modoEdicion = true;
-          this.cargando = false;
+          this.cargando.set(false);
           this.cdr.detectChanges();
         } else {
           this.error = 'No se encontró la evaluación con ese ID.';
-          this.cargando = false;
+          this.cargando.set(false);
           this.cdr.detectChanges();
         }
       },
       error: () => {
         this.error = 'Error al buscar la evaluación.';
-        this.cargando = false;
+        this.cargando.set(false);
         this.cdr.detectChanges();
       }
     });

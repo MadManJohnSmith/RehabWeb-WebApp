@@ -5,8 +5,7 @@
       Pacientes con más de
       <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ vm().thresholdDays }} días</span>
       sin sesión registrada (o sin ninguna sesión). Datos desde
-      <code class="rounded bg-pm-canvas px-1 py-0.5 text-xs dark:bg-pm-canvas-dark">GET /api/v1/inactivity-alerts/</code>
-      con respaldo mock si no hay API.
+      <code class="rounded bg-pm-canvas px-1 py-0.5 text-xs dark:bg-pm-canvas-dark">GET /api/v1/inactivity-alerts/</code>.
       <button
         type="button"
         class="ml-1 inline align-baseline text-sm font-semibold text-pm-primary underline decoration-pm-primary/50 underline-offset-2 hover:decoration-pm-primary"
@@ -18,99 +17,141 @@
     </p>
   </div>
 
-  @if (log().length) {
+  @if (loadState() === 'loading') {
     <div
-      class="rounded-card border border-pm-border bg-pm-surface px-4 py-3 text-xs font-normal text-pm-muted dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-muted-dark"
+      class="rounded-card border border-pm-border bg-pm-surface p-8 text-center dark:border-pm-border-dark dark:bg-pm-surface-dark"
       role="status"
     >
-      @for (line of log(); track line) {
-        <div>{{ line }}</div>
-      }
+      <div class="mx-auto h-8 w-8 animate-pulse rounded-full bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+      <p class="mt-3 text-sm text-pm-muted dark:text-pm-muted-dark">Cargando alertas…</p>
     </div>
-  }
+  } @else {
+    @if (loadError(); as err) {
+      <div
+        class="rounded-control border border-pm-coral/50 bg-pm-danger-bg px-4 py-3 dark:border-pm-coral dark:bg-pm-danger-bg-dark"
+        role="alert"
+      >
+        <p class="text-sm text-pm-coral dark:text-pm-coral">{{ err }}</p>
+        <button
+          type="button"
+          (click)="loadAlerts()"
+          class="mt-2 text-sm font-semibold text-pm-primary hover:underline"
+        >
+          Reintentar
+        </button>
+      </div>
+    }
+    @if (loadState() === 'error') {
+      <div
+        class="rounded-control border border-amber-300/80 bg-amber-50 px-4 py-2 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+        role="status"
+      >
+        Vista de <strong>demostración</strong> (datos locales) hasta que el API responda.
+      </div>
+    }
 
-  <div
-    class="overflow-hidden rounded-card border border-pm-border bg-pm-surface shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
-  >
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-pm-border text-left text-sm dark:divide-pm-border-dark">
-        <thead class="bg-pm-canvas text-xs font-medium uppercase text-pm-muted dark:bg-pm-canvas-dark dark:text-pm-muted-dark">
-          <tr>
-            <th class="px-4 py-3">Prioridad</th>
-            <th class="px-4 py-3">Paciente</th>
-            <th class="px-4 py-3">Días sin actividad</th>
-            <th class="px-4 py-3 text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-pm-border dark:divide-pm-border-dark">
-          @for (row of vm().alerts; track row.alertId) {
+    @if (log().length) {
+      <div
+        class="rounded-card border border-pm-border bg-pm-surface px-4 py-3 text-xs font-normal text-pm-muted dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-muted-dark"
+        role="status"
+      >
+        @for (line of log(); track line) {
+          <div>{{ line }}</div>
+        }
+      </div>
+    }
+
+    <div
+      class="overflow-hidden rounded-card border border-pm-border bg-pm-surface shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
+    >
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-pm-border text-left text-sm dark:divide-pm-border-dark">
+          <thead class="bg-pm-canvas text-xs font-medium uppercase text-pm-muted dark:bg-pm-canvas-dark dark:text-pm-muted-dark">
             <tr>
-              <td class="px-4 py-3">
-                @if (row.priority === 'alta') {
-                  <span
-                    class="inline-flex items-center gap-1 rounded-full bg-pm-danger-bg px-2 py-0.5 text-xs font-medium text-pm-danger dark:bg-pm-danger-bg-dark dark:text-pm-danger-dark"
-                  >
-                    <span class="h-2 w-2 rounded-full bg-pm-danger dark:bg-pm-danger-dark" aria-hidden="true"></span>
-                    Alta
-                  </span>
-                } @else {
-                  <span
-                    class="inline-flex rounded-full bg-pm-canvas px-2 py-0.5 text-xs font-medium text-pm-muted dark:bg-pm-canvas-dark dark:text-pm-muted-dark"
-                    >Media</span>
-                }
-              </td>
-              <td class="px-4 py-3 font-normal text-pm-ink dark:text-pm-ink-on-dark">
-                <a
-                  [routerLink]="['/app/pacientes', row.patientId]"
-                  class="font-semibold text-pm-primary hover:underline"
-                  >{{ row.patientName }}</a>
-                <span class="mt-0.5 block text-xs text-pm-muted dark:text-pm-muted-dark">{{ row.patientId }}</span>
-              </td>
-              <td class="px-4 py-3 font-mono text-sm text-pm-ink dark:text-pm-ink-on-dark">
-                @if (row.daysSinceActivity === null) {
-                  <span class="font-sans text-pm-muted dark:text-pm-muted-dark">Sin sesiones</span>
-                } @else {
-                  {{ row.daysSinceActivity }}
-                  <span class="text-xs font-sans text-pm-muted dark:text-pm-muted-dark"
-                    >(&gt; {{ vm().thresholdDays }})</span
-                  >
-                }
-              </td>
-              <td class="px-4 py-3 text-right">
-                <div class="flex flex-wrap justify-end gap-2">
+              <th class="px-4 py-3">Prioridad</th>
+              <th class="px-4 py-3">Paciente</th>
+              <th class="px-4 py-3">Días sin actividad</th>
+              <th class="px-4 py-3 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-pm-border dark:divide-pm-border-dark">
+            @for (row of vm().alerts; track row.alertId) {
+              <tr>
+                <td class="px-4 py-3">
+                  @if (row.priority === 'alta') {
+                    <span
+                      class="inline-flex items-center gap-1 rounded-full bg-pm-danger-bg px-2 py-0.5 text-xs font-medium text-pm-danger dark:bg-pm-danger-bg-dark dark:text-pm-danger-dark"
+                    >
+                      <span class="h-2 w-2 rounded-full bg-pm-danger dark:bg-pm-danger-dark" aria-hidden="true"></span>
+                      Alta
+                    </span>
+                  } @else {
+                    <span
+                      class="inline-flex rounded-full bg-pm-canvas px-2 py-0.5 text-xs font-medium text-pm-muted dark:bg-pm-canvas-dark dark:text-pm-muted-dark"
+                      >Media</span
+                    >
+                  }
+                </td>
+                <td class="px-4 py-3 font-normal text-pm-ink dark:text-pm-ink-on-dark">
                   <a
                     [routerLink]="['/app/pacientes', row.patientId]"
-                    class="inline-flex items-center gap-1.5 rounded-control border border-pm-border px-3 py-1.5 text-xs font-medium text-pm-ink transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark"
+                    class="font-semibold text-pm-primary hover:underline"
+                    >{{ row.patientName }}</a
                   >
-                    <app-ui-icon name="users" [size]="14" />
-                    Perfil
-                  </a>
-                  <button
-                    type="button"
-                    (click)="motivacional(row.alertId)"
-                    class="inline-flex items-center gap-1.5 rounded-control border border-pm-border px-3 py-1.5 text-xs font-medium text-pm-ink transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark"
-                  >
-                    <app-ui-icon name="send" [size]="14" />
-                    Enviar mensaje
-                  </button>
-                  <button
-                    type="button"
-                    (click)="resolver(row.alertId)"
-                    class="inline-flex items-center gap-1.5 rounded-control bg-pm-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-pm-primary-hover"
-                  >
-                    <app-ui-icon name="circle-check" [size]="14" />
-                    Marcar resuelta
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+                  <span class="mt-0.5 block text-xs text-pm-muted dark:text-pm-muted-dark">{{ row.patientId }}</span>
+                </td>
+                <td class="px-4 py-3 font-mono text-sm text-pm-ink dark:text-pm-ink-on-dark">
+                  @if (row.daysSinceActivity === null) {
+                    <span class="font-sans text-pm-muted dark:text-pm-muted-dark">Sin sesiones</span>
+                  } @else {
+                    {{ row.daysSinceActivity }}
+                    <span class="text-xs font-sans text-pm-muted dark:text-pm-muted-dark"
+                      >(&gt; {{ vm().thresholdDays }})</span
+                    >
+                  }
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <div class="flex flex-wrap justify-end gap-2">
+                    <a
+                      [routerLink]="['/app/pacientes', row.patientId]"
+                      class="inline-flex items-center gap-1.5 rounded-control border border-pm-border px-3 py-1.5 text-xs font-medium text-pm-ink transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark"
+                    >
+                      <app-ui-icon name="users" [size]="14" />
+                      Perfil
+                    </a>
+                    <button
+                      type="button"
+                      (click)="motivacional(row.alertId)"
+                      class="inline-flex items-center gap-1.5 rounded-control border border-pm-border px-3 py-1.5 text-xs font-medium text-pm-ink transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark"
+                    >
+                      <app-ui-icon name="send" [size]="14" />
+                      Enviar mensaje
+                    </button>
+                    <button
+                      type="button"
+                      (click)="resolver(row.alertId)"
+                      class="inline-flex items-center gap-1.5 rounded-control bg-pm-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-pm-primary-hover"
+                    >
+                      <app-ui-icon name="circle-check" [size]="14" />
+                      Marcar resuelta
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="px-4 py-12 text-center text-sm text-pm-muted dark:text-pm-muted-dark">
+                  No hay pacientes inactivos según el umbral del API. ¡Buen trabajo!
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="border-t border-pm-border px-4 py-3 text-xs text-pm-muted dark:border-pm-border-dark dark:text-pm-muted-dark">
+        Inactivos según el API: {{ vm().inactiveCount }} paciente(s). Prioridad en pantalla: alta si no hay historial de
+        sesión o ≥7 días desde la última; si no, media.
+      </p>
     </div>
-    <p class="border-t border-pm-border px-4 py-3 text-xs text-pm-muted dark:border-pm-border-dark dark:text-pm-muted-dark">
-      Inactivos según el API: {{ vm().inactiveCount }} paciente(s). Prioridad en pantalla: alta si no hay historial de
-      sesión o ≥7 días desde la última; si no, media.
-    </p>
-  </div>
+  }
 </div>

@@ -31,15 +31,35 @@
       </p>
     </div>
 
+    @if (patientsLoadError(); as pErr) {
+      <div
+        class="mt-6 rounded-control border border-pm-coral/50 bg-pm-danger-bg px-4 py-3 dark:border-pm-coral dark:bg-pm-danger-bg-dark"
+        role="alert"
+      >
+        <p class="text-sm text-pm-coral dark:text-pm-coral">{{ pErr }}</p>
+        <button
+          type="button"
+          (click)="loadPatients()"
+          class="mt-2 text-sm font-semibold text-pm-primary hover:underline"
+        >
+          Reintentar carga de pacientes
+        </button>
+      </div>
+    }
+
     <div class="mt-8 grid gap-5 md:grid-cols-2">
       <div class="md:col-span-2">
         <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
           Paciente (obligatorio)
         </label>
+        @if (patientsLoading()) {
+          <p class="text-sm text-pm-muted dark:text-pm-muted-dark" role="status">Cargando pacientes…</p>
+        }
         <select
           name="pacienteId"
           [(ngModel)]="pacienteId"
-          class="w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-3 text-sm font-medium text-pm-ink outline-none ring-pm-primary focus:ring-2 dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+          [disabled]="patientsLoading()"
+          class="w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-3 text-sm font-medium text-pm-ink outline-none ring-pm-primary focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
         >
           @for (p of patientOptions(); track p.id) {
             <option [value]="p.id">{{ p.label }}</option>

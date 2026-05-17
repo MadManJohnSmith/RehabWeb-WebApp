@@ -33,25 +33,37 @@ export class ReportsPageComponent {
   readonly patientOptions = signal<{ id: string; label: string }[]>([
     { id: '', label: 'Seleccione un paciente…' },
   ]);
+  readonly patientsLoading = signal(true);
+  readonly patientsLoadError = signal<string | null>(null);
 
   constructor() {
     afterNextRender(() => {
       if (!isPlatformBrowser(this.platformId)) {
         return;
       }
-      this.patientsApi.list({ includeDeleted: false, page_size: 50 }).subscribe({
-        next: (res) => {
-          const head = { id: '', label: 'Seleccione un paciente…' };
-          const rest = res.results.map((r) => ({
-            id: String(r.patientId),
-            label: r.fullName,
-          }));
-          this.patientOptions.set([head, ...rest]);
-        },
-        error: () => {
-          /* se mantiene solo la opción placeholder */
-        },
-      });
+      this.loadPatients();
+    });
+  }
+
+  loadPatients(): void {
+    this.patientsLoading.set(true);
+    this.patientsLoadError.set(null);
+    this.patientsApi.list({ includeDeleted: false, page_size: 50 }).subscribe({
+      next: (res) => {
+        const head = { id: '', label: 'Seleccione un paciente…' };
+        const rest = res.results.map((r) => ({
+          id: String(r.patientId),
+          label: r.fullName,
+        }));
+        this.patientOptions.set([head, ...rest]);
+        this.patientsLoading.set(false);
+      },
+      error: () => {
+        this.patientsLoading.set(false);
+        this.patientsLoadError.set(
+          'No se pudo cargar el listado de pacientes. Comprueba el API y tu sesión, luego reintenta.',
+        );
+      },
     });
   }
 

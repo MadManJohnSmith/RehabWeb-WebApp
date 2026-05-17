@@ -1,5 +1,4 @@
 <div class="mx-auto w-full max-w-[min(100%,80rem)] space-y-6 pb-4">
-  @let d = vm();
   <div class="pt-1">
     <p class="text-xs font-medium uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
       Tablero de control
@@ -7,9 +6,50 @@
     <h1 class="mt-1 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Resumen clínico</h1>
     <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
       Datos agregados desde <span class="font-mono text-xs">GET /api/v1/me/dashboard/</span> (inactividad, anillos, series,
-      ROM y sesiones recientes). Si la petición falla, se muestra el mock de respaldo.
+      ROM y sesiones recientes).
     </p>
   </div>
+
+  @if (loadState() === 'loading') {
+    <div
+      class="space-y-4 rounded-card border border-pm-border bg-pm-surface p-6 dark:border-pm-border-dark dark:bg-pm-surface-dark"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="h-5 w-48 animate-pulse rounded bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+      <div class="h-24 animate-pulse rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+      <div class="grid gap-4 lg:grid-cols-3">
+        <div class="h-56 animate-pulse rounded-card bg-pm-canvas lg:col-span-2 dark:bg-pm-canvas-dark"></div>
+        <div class="h-56 animate-pulse rounded-card bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+      </div>
+      <p class="text-center text-sm text-pm-muted dark:text-pm-muted-dark">Cargando tablero…</p>
+    </div>
+  } @else {
+    @if (loadError(); as err) {
+      <div
+        class="rounded-control border border-pm-coral/50 bg-pm-danger-bg px-4 py-3 dark:border-pm-coral dark:bg-pm-danger-bg-dark"
+        role="alert"
+      >
+        <p class="text-sm text-pm-coral dark:text-pm-coral">{{ err }}</p>
+        <button
+          type="button"
+          (click)="loadDashboard()"
+          class="mt-2 text-sm font-semibold text-pm-primary hover:underline"
+        >
+          Reintentar
+        </button>
+      </div>
+    }
+    @if (usingFallback()) {
+      <div
+        class="rounded-control border border-amber-300/80 bg-amber-50 px-4 py-2 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+        role="status"
+      >
+        Vista de <strong>demostración</strong> (datos locales). Conecta el API y pulsa Reintentar para ver datos reales.
+      </div>
+    }
+
+    @let d = vm();
 
   <!-- Alerta superior inactividad -->
   <section
@@ -159,9 +199,9 @@
       </div>
       <div class="relative mt-4">
         <svg
-          class="h-56 w-full text-pm-ink dark:text-pm-ink-on-dark"
-          viewBox="0 0 420 200"
-          preserveAspectRatio="none"
+          class="h-64 w-full text-pm-ink dark:text-pm-ink-on-dark"
+          viewBox="0 0 560 240"
+          preserveAspectRatio="xMidYMid meet"
           (mouseleave)="clearTip()"
         >
           <defs>
@@ -170,7 +210,7 @@
               <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
             </linearGradient>
           </defs>
-          <rect x="0" y="0" width="420" height="200" fill="url(#dashGrid)" rx="14" />
+          <rect x="0" y="0" width="560" height="240" fill="url(#dashGrid)" rx="14" />
           <polyline
             [attr.points]="lineMetaPoints()"
             fill="none"
@@ -308,4 +348,5 @@
       </table>
     </div>
   </section>
+  }
 </div>

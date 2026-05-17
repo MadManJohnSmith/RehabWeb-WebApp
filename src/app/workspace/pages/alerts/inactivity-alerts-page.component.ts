@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { isPlatformBrowser } from '@angular/common';
+import { afterNextRender, Component, inject, PLATFORM_ID, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { INACTIVITY_ALERTS_MOCK_VIEW } from '../../data/inactivity-alerts.mock';
+import type { InactivityAlertsViewDto } from '../../data/inactivity-alerts.dto';
 import { InactivityAlertsDataService } from '../../services/inactivity-alerts-data.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
 
@@ -13,15 +14,43 @@ import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
 })
 export class InactivityAlertsPageComponent {
   private readonly alertsData = inject(InactivityAlertsDataService);
+  private readonly platformId = inject(PLATFORM_ID);
 
-  readonly vm = toSignal(this.alertsData.getAlertsView(), {
-    initialValue: INACTIVITY_ALERTS_MOCK_VIEW,
-  });
+  readonly loadState = signal<'loading' | 'ok' | 'error'>('loading');
+  readonly loadError = signal<string | null>(null);
+  readonly vm = signal<InactivityAlertsViewDto>(INACTIVITY_ALERTS_MOCK_VIEW);
 
   protected readonly log = signal<string[]>([]);
 
   readonly dataHint =
     'El backend calcula en vivo los pacientes vinculados sin sesión o con más de 3 días desde la última sesión (misma regla que el dashboard).';
+
+  constructor() {
+    afterNextRender(() => {
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
+      this.loadAlerts();
+    });
+  }
+
+  loadAlerts(): void {
+    this.loadState.set('loading');
+    this.loadError.set(null);
+    this.alertsData.getAlertsView().subscribe({
+      next: (data) => {
+        this.vm.set(data);
+        this.loadState.set('ok');
+      },
+      error: () => {
+        this.vm.set(INACTIVITY_ALERTS_MOCK_VIEW);
+        this.loadState.set('error');
+        this.loadError.set(
+          'No se pudieron cargar las alertas desde el API. Comprueba que el backend esté en marcha y que hayas iniciado sesión.',
+        );
+      },
+    });
+  }
 
   motivacional(id: string): void {
     this.log.update((l) => [`Mensaje motivacional (simulado): ${id}`, ...l].slice(0, 6));

@@ -182,22 +182,39 @@
     @if (!patientOptions().length) {
       <p class="mt-4 text-sm text-pm-muted dark:text-pm-muted-dark">No hay pacientes vinculados para comparar.</p>
     } @else {
-      <fieldset class="mt-4 flex flex-wrap gap-3 border-0 p-0">
-        <legend class="sr-only">Pacientes en comparativa grupal</legend>
-        @for (p of patientOptions(); track p.id) {
-          <label
-            class="inline-flex cursor-pointer items-center gap-2 rounded-control border border-pm-border bg-pm-canvas/80 px-3 py-2 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark/60"
-          >
-            <input
-              type="checkbox"
-              class="h-4 w-4 rounded border-pm-border text-pm-primary focus:ring-pm-primary"
-              [checked]="isGroupChecked(p.id)"
-              (change)="toggleGroup(p.id, $any($event.target).checked)"
-            />
-            <span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">{{ p.label }}</span>
-          </label>
+      <div class="relative mt-4 w-full max-w-sm">
+        <button
+          type="button"
+          class="flex w-full items-center justify-between gap-2 rounded-control border border-pm-border bg-pm-canvas px-4 py-2.5 text-left text-sm font-medium text-pm-ink focus:outline-none focus:ring-2 focus:ring-pm-primary dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+          (click)="toggleGroupDropdown()"
+        >
+          <span class="flex items-center gap-2">
+            <svg class="h-5 w-5 text-pm-muted dark:text-pm-muted-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            Seleccionar pacientes ({{ groupOrderedIds().length }})
+          </span>
+          <svg class="h-5 w-5 text-pm-muted transition-transform duration-200 dark:text-pm-muted-dark" [class.rotate-180]="isGroupDropdownOpen()" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        @if (isGroupDropdownOpen()) {
+          <div class="absolute left-0 top-full z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-card border border-pm-border bg-pm-surface py-2 shadow-pm-lg dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-lg-dark">
+            @for (p of patientOptions(); track p.id) {
+              <label class="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-pm-canvas/50 dark:hover:bg-pm-canvas-dark/50">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-pm-border text-pm-primary focus:ring-pm-primary"
+                  [checked]="isGroupChecked(p.id)"
+                  (change)="toggleGroup(p.id, $any($event.target).checked)"
+                />
+                <span class="text-sm font-medium text-pm-ink dark:text-pm-ink-on-dark">{{ p.label }}</span>
+              </label>
+            }
+          </div>
         }
-      </fieldset>
+      </div>
     }
 
     <div class="relative mt-6">

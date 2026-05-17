@@ -77,8 +77,13 @@ export class ComparisonPerformancePageComponent {
   readonly patientOptions = signal<{ id: string; label: string }[]>([]);
   readonly individualPatientId = signal('');
   private readonly groupPatientIds = signal<Set<string>>(new Set());
+  readonly isGroupDropdownOpen = signal(false);
 
   readonly groupOrderedIds = computed(() => [...this.groupPatientIds()].sort((a, b) => Number(a) - Number(b)));
+
+  toggleGroupDropdown(): void {
+    this.isGroupDropdownOpen.update((v) => !v);
+  }
 
   readonly compareResult = toSignal(
     combineLatest([toObservable(this.individualPatientId), toObservable(this.groupPatientIds)]).pipe(

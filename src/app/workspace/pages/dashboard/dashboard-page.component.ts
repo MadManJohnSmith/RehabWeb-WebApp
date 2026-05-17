@@ -1,5 +1,13 @@
 import { isPlatformBrowser } from '@angular/common';
-import { afterNextRender, Component, computed, inject, PLATFORM_ID, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  computed,
+  inject,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
@@ -23,12 +31,12 @@ type ChartDot = {
   imports: [RouterLink, UiIconComponent],
   templateUrl: './dashboard-page.component.html',
 })
-export class DashboardPageComponent {
+export class DashboardPageComponent implements AfterViewInit {
+  private readonly cd = inject(ChangeDetectorRef);
   private readonly toast = inject(ToastService);
   private readonly dashboardData = inject(DashboardDataService);
   private readonly platformId = inject(PLATFORM_ID);
 
-  /** Tooltip / aria: AC HU-03 (Cron es backend). */
   readonly inactivityCronHint =
     'En producción: un Cron en el servidor revisa cada día las últimas sesiones y marca inactividad cuando pasan más de 3 días sin registro.';
 
@@ -61,21 +69,17 @@ export class DashboardPageComponent {
     ),
   );
 
-  readonly chartDots = computed(() =>
-    this.dotsNvNMinus1(this.vm().temporalSeries, 560, 240, 24),
-  );
+  readonly chartDots = computed(() => this.dotsNvNMinus1(this.vm().temporalSeries, 560, 240, 24));
 
   readonly romMaxDegrees = computed(() =>
     Math.max(1, ...this.vm().romByWeek.map((r) => r.romDegrees)),
   );
 
-  constructor() {
-    afterNextRender(() => {
-      if (!isPlatformBrowser(this.platformId)) {
-        return;
-      }
-      this.loadDashboard();
-    });
+  ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    requestAnimationFrame(() => this.loadDashboard());
   }
 
   loadDashboard(): void {
@@ -84,10 +88,14 @@ export class DashboardPageComponent {
     this.dashboardData.getDashboardMetrics().subscribe({
       next: (data) => {
         this.vm.set(data);
+        this.cd.detectChanges();
+        requestAnimationFrame(() => {});
         this.loadState.set('ok');
       },
       error: () => {
         this.vm.set(DASHBOARD_METRICS_MOCK);
+        this.cd.detectChanges();
+        requestAnimationFrame(() => {});
         this.loadState.set('error');
         this.loadError.set(
           'No se pudo cargar el tablero desde el API. Comprueba que el backend esté en marcha y que hayas iniciado sesión.',
@@ -114,7 +122,13 @@ export class DashboardPageComponent {
   }
 
   openReportSnippet(title: string): void {
-    this.toast.show(`Resumen «${title}»: la descarga se enlazará al módulo de reportes en el servidor.`);
+    this.toast.show(
+      `Resumen «${title}»: la descarga se enlazará al módulo de reportes en el servidor.`,
+    );
+  }
+
+  romBarHeightPx(romDegrees: number): number {
+    return Math.max(12, (romDegrees / this.romMaxDegrees()) * 96);
   }
 
   private linePointsFor(

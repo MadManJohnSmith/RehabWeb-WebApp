@@ -4,7 +4,9 @@ import { authGuard } from './core/auth.guard';
 import { guestGuard } from './core/guest.guard';
 
 export const routes: Routes = [
+
   { path: '', pathMatch: 'full', redirectTo: 'landing' },
+
   {
     path: 'landing',
     loadComponent: () =>
@@ -25,4 +27,5 @@ export const routes: Routes = [
   },
   { path: 'modulo-5', redirectTo: 'app', pathMatch: 'full' },
   { path: '**', redirectTo: 'landing' },
+
 ];

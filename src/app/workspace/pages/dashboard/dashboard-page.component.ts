@@ -1,9 +1,18 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { isPlatformBrowser } from '@angular/common';
+import {
+  Component,
+  AfterViewInit,
+  ChangeDetectorRef,
+  computed,
+  inject,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
 import { DASHBOARD_METRICS_MOCK } from '../../data/dashboard-metrics.mock';
+import type { DashboardMetricsDto } from '../../data/dashboard-metrics.dto';
 import type { TemporalMetricPointDto } from '../../data/dashboard-metrics.dto';
 import { DashboardDataService } from '../../services/dashboard-data.service';
 
@@ -23,21 +32,25 @@ type ChartDot = {
   templateUrl: './dashboard-page.component.html',
 })
 export class DashboardPageComponent {
+  // detectChanges para forzar repintado tras actualizar señales
+  private readonly cd = inject(ChangeDetectorRef);
   private readonly toast = inject(ToastService);
   private readonly dashboardData = inject(DashboardDataService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   /** Tooltip / aria: AC HU-03 (Cron es backend). */
   readonly inactivityCronHint =
     'En producción: un Cron en el servidor revisa cada día las últimas sesiones y marca inactividad cuando pasan más de 3 días sin registro.';
 
-  /** Datos del tablero vía `GET /api/v1/me/dashboard/` (mapeados a la forma del template). */
-  readonly vm = toSignal(this.dashboardData.getDashboardMetrics(), {
-    initialValue: DASHBOARD_METRICS_MOCK,
-  });
+  readonly loadState = signal<'loading' | 'ok' | 'error'>('loading');
+  readonly loadError = signal<string | null>(null);
+  readonly vm = signal<DashboardMetricsDto>(DASHBOARD_METRICS_MOCK);
 
   protected readonly chartTooltip = signal<{ x: number; y: number; label: string } | null>(null);
 
   readonly ringCirc = 2 * Math.PI * 38;
+
+  readonly usingFallback = computed(() => this.loadState() === 'error');
 
   private readonly boundsValues = computed(() => {
     const s = this.vm().temporalSeries;
@@ -58,13 +71,44 @@ export class DashboardPageComponent {
     ),
   );
 
-  readonly chartDots = computed(() =>
-    this.dotsNvNMinus1(this.vm().temporalSeries, 420, 200, 20),
-  );
+  readonly chartDots = computed(() => this.dotsNvNMinus1(this.vm().temporalSeries, 560, 240, 24));
 
   readonly romMaxDegrees = computed(() =>
     Math.max(1, ...this.vm().romByWeek.map((r) => r.romDegrees)),
   );
+
+  constructor() {}
+
+  ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    // esperar al siguiente frame para asegurar que el DOM/SVG tenga tamaño
+    requestAnimationFrame(() => this.loadDashboard());
+  }
+
+  loadDashboard(): void {
+    this.loadState.set('loading');
+    this.loadError.set(null);
+    this.dashboardData.getDashboardMetrics().subscribe({
+      next: (data) => {
+        this.vm.set(data);
+        // forzar detección y dar tiempo al navegador para pintar con los datos nuevos
+        this.cd.detectChanges();
+        requestAnimationFrame(() => {});
+        this.loadState.set('ok');
+      },
+      error: () => {
+        this.vm.set(DASHBOARD_METRICS_MOCK);
+        this.cd.detectChanges();
+        requestAnimationFrame(() => {});
+        this.loadState.set('error');
+        this.loadError.set(
+          'No se pudo cargar el tablero desde el API. Comprueba que el backend esté en marcha y que hayas iniciado sesión.',
+        );
+      },
+    });
+  }
 
   showPointTip(ev: MouseEvent, label: string): void {
     const svg = (ev.currentTarget as SVGElement).closest('svg');
@@ -84,15 +128,21 @@ export class DashboardPageComponent {
   }
 
   openReportSnippet(title: string): void {
-    this.toast.show(`Resumen «${title}»: la descarga se enlazará al módulo de reportes en el servidor.`);
+    this.toast.show(
+      `Resumen «${title}»: la descarga se enlazará al módulo de reportes en el servidor.`,
+    );
+  }
+
+  romBarHeightPx(romDegrees: number): number {
+    return Math.max(12, (romDegrees / this.romMaxDegrees()) * 96);
   }
 
   private linePointsFor(
     values: number[],
     combinedForBounds: number[],
-    width = 420,
-    height = 200,
-    pad = 20,
+    width = 560,
+    height = 240,
+    pad = 24,
   ): string {
     const n = values.length;
     if (n < 2) {

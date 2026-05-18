@@ -81,6 +81,23 @@ export class ComparisonPerformancePageComponent {
 
   readonly groupOrderedIds = computed(() => [...this.groupPatientIds()].sort((a, b) => Number(a) - Number(b)));
 
+  // Variables para el efecto hover en la gráfica SVG grupal
+  hoveredPatientId: string | null = null;
+  mouseX: number = 0;
+  mouseY: number = 0;
+
+  // Manejador del evento hover sobre las líneas
+  onLineHover(pid: string, event: MouseEvent) {
+    this.hoveredPatientId = pid;
+    this.mouseX = event.clientX;
+    this.mouseY = event.clientY;
+  }
+
+  // Limpieza del estado al salir del área de la gráfica
+  clearLineHover() {
+    this.hoveredPatientId = null;
+  }
+
   toggleGroupDropdown(): void {
     this.isGroupDropdownOpen.update((v) => !v);
   }
@@ -269,7 +286,8 @@ export class ComparisonPerformancePageComponent {
   }
 
   tipForDot(d: Dot): string {
-    return `${d.periodLabel}: observado ${d.real} · meta ${d.meta}`;
+    const patientName = this.nameForPatientId(this.individualPatientId());
+    return ` ${patientName}: ${d.periodLabel} (observado ${d.real}° · meta ${d.meta}°)`;
   }
 
   formatRecoveryPct(v: number | null | undefined): string {

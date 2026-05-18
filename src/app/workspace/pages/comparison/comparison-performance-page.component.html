@@ -7,27 +7,29 @@
       <h1 class="mt-1 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Meta inicial vs desempeño real</h1>
       <p class="mt-1 max-w-3xl text-sm text-pm-muted dark:text-pm-muted-dark">
         Vista individual y grupal con datos de
-        <code class="rounded bg-pm-canvas px-1 py-0.5 text-xs dark:bg-pm-canvas-dark">POST /api/v1/performance/compare/</code>
+        <code
+          class="rounded bg-pm-canvas px-1 py-0.5 text-xs dark:bg-pm-canvas-dark">POST /api/v1/performance/compare/</code>
         (serie temporal meta vs observado por paciente; escala común en la vista grupal). Máximo 12 pacientes por
         solicitud.
       </p>
     </div>
-    <a routerLink="/app/pacientes" class="text-sm font-medium text-pm-primary hover:underline">Directorio de pacientes</a>
+    <a routerLink="/app/pacientes" class="text-sm font-medium text-pm-primary hover:underline">Directorio de
+      pacientes</a>
   </div>
 
   @if (compareLoading()) {
-    <p class="text-sm text-pm-muted dark:text-pm-muted-dark" role="status">Actualizando comparativa…</p>
+  <p class="text-sm text-pm-muted dark:text-pm-muted-dark" role="status">Actualizando comparativa…</p>
   }
   @if (compareErrorMessage(); as errMsg) {
-    <p class="rounded-control border border-pm-coral/40 bg-pm-danger-bg px-4 py-3 text-sm text-pm-coral dark:bg-pm-danger-bg-dark dark:text-pm-coral">
-      {{ errMsg }}
-    </p>
+  <p
+    class="rounded-control border border-pm-coral/40 bg-pm-danger-bg px-4 py-3 text-sm text-pm-coral dark:bg-pm-danger-bg-dark dark:text-pm-coral">
+    {{ errMsg }}
+  </p>
   }
 
   <!-- Fórmula de progreso (HU-04 AC-01 — texto hasta incorporar figura oficial) -->
   <section
-    class="rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
-  >
+    class="rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark">
     <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Fórmula de progreso (referencia)</h2>
     <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
       Alineación al criterio de la HU: superposición de meta y real en gráficas; el progreso relativo se documenta aquí
@@ -35,24 +37,25 @@
       <span class="font-mono text-xs">recoveryScorePercent</span> en el resumen (placeholder documentado en servidor).
     </p>
     <div
-      class="mt-4 rounded-control border border-pm-border bg-pm-canvas/90 p-4 font-mono text-sm leading-relaxed text-pm-ink dark:border-pm-border-dark dark:bg-pm-canvas-dark/80 dark:text-pm-ink-on-dark"
-    >
+      class="mt-4 rounded-control border border-pm-border bg-pm-canvas/90 p-4 font-mono text-sm leading-relaxed text-pm-ink dark:border-pm-border-dark dark:bg-pm-canvas-dark/80 dark:text-pm-ink-on-dark">
       <p class="text-xs font-sans font-semibold uppercase tracking-wide text-pm-muted dark:text-pm-muted-dark">
         Progreso relativo (%)
       </p>
       <p class="mt-2">P = ((R − M₀) / (M* − M₀)) × 100</p>
       <ul class="mt-3 list-inside list-disc space-y-1 font-sans text-xs text-pm-muted dark:text-pm-muted-dark">
-        <li><span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">R</span> — desempeño real en el punto evaluado.</li>
-        <li><span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">M₀</span> — meta inicial (línea de referencia al inicio del plan).</li>
-        <li><span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">M*</span> — meta objetivo al alta (tope del plan en la misma escala 0–100 de la demo).</li>
+        <li><span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">R</span> — desempeño real en el punto
+          evaluado.</li>
+        <li><span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">M₀</span> — meta inicial (línea de referencia
+          al inicio del plan).</li>
+        <li><span class="font-medium text-pm-ink dark:text-pm-ink-on-dark">M*</span> — meta objetivo al alta (tope del
+          plan en la misma escala 0–100 de la demo).</li>
       </ul>
     </div>
   </section>
 
   <!-- Vista individual -->
   <section
-    class="rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
-  >
+    class="rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Vista individual</h2>
@@ -64,114 +67,93 @@
         <label class="mb-1 block text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Paciente</label>
         <select
           class="w-full rounded-control border border-pm-border bg-pm-canvas px-3 py-2.5 text-sm dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
-          [ngModel]="individualPatientId()"
-          (ngModelChange)="individualPatientId.set($event)"
-        >
+          [ngModel]="individualPatientId()" (ngModelChange)="individualPatientId.set($event)">
           @if (!patientOptions().length) {
-            <option value="">Sin pacientes vinculados</option>
+          <option value="">Sin pacientes vinculados</option>
           }
           @for (p of patientOptions(); track p.id) {
-            <option [value]="p.id">{{ p.label }}</option>
+          <option [value]="p.id">{{ p.label }}</option>
           }
         </select>
       </div>
     </div>
 
     @if (individualPayload(); as ind) {
-      <p class="mt-3 text-xs text-pm-muted dark:text-pm-muted-dark">
-        @if (ind.summary.recoveryScorePercent != null) {
-          Progreso (API): <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ formatRecoveryPct(ind.summary.recoveryScorePercent) }}</span>
-          ·
-        }
-        <a [routerLink]="['/app/pacientes', ind.patientId]" class="font-medium text-pm-primary hover:underline">Abrir ficha completa</a>
-      </p>
+    <p class="mt-3 text-xs text-pm-muted dark:text-pm-muted-dark">
+      @if (ind.summary.recoveryScorePercent != null) {
+      Progreso (API): <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{
+        formatRecoveryPct(ind.summary.recoveryScorePercent) }}</span>
+      ·
+      }
+      <a [routerLink]="['/app/pacientes', ind.patientId]" class="font-medium text-pm-primary hover:underline">Abrir
+        ficha completa</a>
+    </p>
     } @else if (individualPatientId()) {
-      <p class="mt-3 text-xs text-pm-muted dark:text-pm-muted-dark">
-        <a [routerLink]="['/app/pacientes', individualPatientId()]" class="font-medium text-pm-primary hover:underline">Abrir ficha</a>
-        (sin serie en la última respuesta del API)
-      </p>
+    <p class="mt-3 text-xs text-pm-muted dark:text-pm-muted-dark">
+      <a [routerLink]="['/app/pacientes', individualPatientId()]"
+        class="font-medium text-pm-primary hover:underline">Abrir ficha</a>
+      (sin serie en la última respuesta del API)
+    </p>
     }
 
     @if (individualPayload(); as ind2) {
-      @if (ind2.temporalSeries.length < 2) {
-        <p class="mt-4 text-sm text-pm-muted dark:text-pm-muted-dark">Se necesitan al menos dos puntos en la serie para dibujar la gráfica.</p>
+    @if (ind2.temporalSeries.length < 2) { <p class="mt-4 text-sm text-pm-muted dark:text-pm-muted-dark">Se necesitan al
+      menos dos puntos en la serie para dibujar la gráfica.</p>
       }
-    }
+      }
 
-    <div class="relative mt-4">
-      <svg
-        class="h-56 w-full text-pm-ink dark:text-pm-ink-on-dark"
-        viewBox="0 0 360 200"
-        preserveAspectRatio="xMidYMid meet"
-        (mouseleave)="clearTip()"
-      >
-        <defs>
-          <linearGradient id="cmpGridInd" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stop-color="currentColor" stop-opacity="0.06" />
-            <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
-          </linearGradient>
-        </defs>
-        <rect x="0" y="0" width="360" height="200" fill="url(#cmpGridInd)" rx="12" />
-        <polyline
-          [attr.points]="individualMetaPoints()"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-dasharray="6 4"
-          class="text-pm-info"
-        />
-        <polyline
-          [attr.points]="individualRealPoints()"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          class="text-pm-primary"
-        />
-        @for (d of individualDots(); track $index) {
-          <circle
-            [attr.cx]="d.cx"
-            [attr.cy]="d.cy"
-            r="5"
-            [class.fill-pm-primary]="!d.regression"
-            [class.fill-pm-coral]="d.regression"
-            stroke="white"
-            stroke-width="1.5"
-            class="cursor-crosshair dark:stroke-pm-surface-dark"
-            (mouseenter)="showTip($event, tipForDot(d))"
-            (mousemove)="showTip($event, tipForDot(d))"
-          />
-        }
-      </svg>
-      @if (chartTooltip(); as tip) {
+      <div class="relative mt-4">
+        <svg class="h-56 w-full text-pm-ink dark:text-pm-ink-on-dark" viewBox="0 0 360 200"
+          preserveAspectRatio="xMidYMid meet" (mouseleave)="clearTip()">
+          <defs>
+            <linearGradient id="cmpGridInd" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="currentColor" stop-opacity="0.06" />
+              <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="360" height="200" fill="url(#cmpGridInd)" rx="12" />
+          <polyline [attr.points]="individualMetaPoints()" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-dasharray="6 4" class="text-pm-info" />
+          <polyline [attr.points]="individualRealPoints()" fill="none" stroke="currentColor" stroke-width="2.5"
+            class="text-pm-primary" />
+          @for (d of individualDots(); track $index) {
+          <!-- Punto visual -->
+          <circle [attr.cx]="d.cx" [attr.cy]="d.cy" r="5" [class.fill-pm-primary]="!d.regression"
+            [class.fill-pm-coral]="d.regression" stroke="white" stroke-width="1.5"
+            class="pointer-events-none dark:stroke-pm-surface-dark" />
+          <!-- Área de interacción expandida (fluida) -->
+          <circle [attr.cx]="d.cx" [attr.cy]="d.cy" r="16" fill="transparent"
+            class="cursor-crosshair" (mouseenter)="showTip($event, tipForDot(d))"
+            (mousemove)="showTip($event, tipForDot(d))" />
+          }
+        </svg>
+        @if (chartTooltip(); as tip) {
         <div
           class="pointer-events-none absolute z-10 max-w-[16rem] -translate-x-1/2 -translate-y-full rounded-control border border-pm-border bg-pm-surface px-2 py-1 text-xs font-medium text-pm-ink shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
-          [style.left.px]="tip.x"
-          [style.top.px]="tip.y"
-        >
+          [style.left.px]="tip.x" [style.top.px]="tip.y">
           {{ tip.text }}
         </div>
-      }
-    </div>
-    <div class="mt-3 flex flex-wrap gap-4 text-xs text-pm-muted dark:text-pm-muted-dark">
-      <span class="inline-flex items-center gap-2">
-        <span class="h-0.5 w-6 border-t-2 border-dashed border-pm-info"></span> Meta inicial
-      </span>
-      <span class="inline-flex items-center gap-2">
-        <span class="h-0.5 w-6 border-t-2 border-pm-primary"></span> Desempeño real
-      </span>
-      <span class="inline-flex items-center gap-1">
-        <span class="h-2 w-2 rounded-full bg-pm-primary"></span> Mejora vs meta en el punto
-      </span>
-      <span class="inline-flex items-center gap-1">
-        <span class="h-2 w-2 rounded-full bg-pm-coral"></span> Regresión vs meta
-      </span>
-    </div>
+        }
+      </div>
+      <div class="mt-3 flex flex-wrap gap-4 text-xs text-pm-muted dark:text-pm-muted-dark">
+        <span class="inline-flex items-center gap-2">
+          <span class="h-0.5 w-6 border-t-4 border-dashed border-pm-info"></span> Meta inicial
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="h-0.5 w-6 border-t-4 border-pm-primary"></span> Desempeño real
+        </span>
+        <span class="inline-flex items-center gap-1">
+          <span class="h-2 w-2 rounded-full bg-pm-primary"></span> Mejora vs meta en el punto
+        </span>
+        <span class="inline-flex items-center gap-1">
+          <span class="h-2 w-2 rounded-full bg-pm-coral"></span> Regresión vs meta
+        </span>
+      </div>
   </section>
 
   <!-- Vista grupal -->
   <section
-    class="rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
-  >
+    class="rounded-card border border-pm-border bg-pm-surface p-5 shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark">
     <h2 class="text-base font-bold text-pm-ink dark:text-pm-ink-on-dark">Vista grupal (recovery score)</h2>
     <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
       Selecciona uno o más pacientes; cada línea continua es la serie de
@@ -180,49 +162,46 @@
     </p>
 
     @if (!patientOptions().length) {
-      <p class="mt-4 text-sm text-pm-muted dark:text-pm-muted-dark">No hay pacientes vinculados para comparar.</p>
+    <p class="mt-4 text-sm text-pm-muted dark:text-pm-muted-dark">No hay pacientes vinculados para comparar.</p>
     } @else {
-      <div class="relative mt-4 w-full max-w-sm">
-        <button
-          type="button"
-          class="flex w-full items-center justify-between gap-2 rounded-control border border-pm-border bg-pm-canvas px-4 py-2.5 text-left text-sm font-medium text-pm-ink focus:outline-none focus:ring-2 focus:ring-pm-primary dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
-          (click)="toggleGroupDropdown()"
-        >
-          <span class="flex items-center gap-2">
-            <svg class="h-5 w-5 text-pm-muted dark:text-pm-muted-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-            Seleccionar pacientes ({{ groupOrderedIds().length }})
-          </span>
-          <svg class="h-5 w-5 text-pm-muted transition-transform duration-200 dark:text-pm-muted-dark" [class.rotate-180]="isGroupDropdownOpen()" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+    <div class="relative mt-4 w-full max-w-sm" #groupDropdownRef>
+      <button type="button"
+        class="flex w-full items-center justify-between gap-2 rounded-control border border-pm-border bg-pm-canvas px-4 py-2.5 text-left text-sm font-medium text-pm-ink focus:outline-none focus:ring-2 focus:ring-pm-primary dark:border-pm-border-dark dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+        (click)="toggleGroupDropdown()">
+        <span class="flex items-center gap-2">
+          <svg class="h-5 w-5 text-pm-muted dark:text-pm-muted-dark" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
-        </button>
+          Seleccionar pacientes ({{ groupOrderedIds().length }})
+        </span>
+        <svg class="h-5 w-5 text-pm-muted transition-transform duration-200 dark:text-pm-muted-dark"
+          [class.rotate-180]="isGroupDropdownOpen()" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
 
-        @if (isGroupDropdownOpen()) {
-          <div class="absolute left-0 top-full z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-card border border-pm-border bg-pm-surface py-2 shadow-pm-lg dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-lg-dark">
-            @for (p of patientOptions(); track p.id) {
-              <label class="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-pm-canvas/50 dark:hover:bg-pm-canvas-dark/50">
-                <input
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-pm-border text-pm-primary focus:ring-pm-primary"
-                  [checked]="isGroupChecked(p.id)"
-                  (change)="toggleGroup(p.id, $any($event.target).checked)"
-                />
-                <span class="text-sm font-medium text-pm-ink dark:text-pm-ink-on-dark">{{ p.label }}</span>
-              </label>
-            }
-          </div>
+      @if (isGroupDropdownOpen()) {
+      <div class="fixed inset-0 z-10" (click)="isGroupDropdownOpen.set(false)"></div>
+      <div
+        class="absolute left-0 top-full z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-card border border-pm-border bg-pm-surface py-2 shadow-pm-lg dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-lg-dark">
+        @for (p of patientOptions(); track p.id) {
+        <label
+          class="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-pm-canvas/50 dark:hover:bg-pm-canvas-dark/50">
+          <input type="checkbox" class="h-4 w-4 rounded border-pm-border text-pm-primary focus:ring-pm-primary"
+            [checked]="isGroupChecked(p.id)" (change)="toggleGroup(p.id, $any($event.target).checked)" />
+          <span class="text-sm font-medium text-pm-ink dark:text-pm-ink-on-dark">{{ p.label }}</span>
+        </label>
         }
       </div>
+      }
+    </div>
     }
 
-    <div class="relative mt-6">
-      <svg
-        class="h-64 w-full text-pm-ink dark:text-pm-ink-on-dark"
-        viewBox="0 0 420 220"
-        preserveAspectRatio="xMidYMid meet"
-      >
+    <div class="relative mt-6" (mouseleave)="clearLineHover()">
+      <svg class="h-64 w-full text-pm-ink dark:text-pm-ink-on-dark" viewBox="0 0 420 220"
+        preserveAspectRatio="xMidYMid meet">
         <defs>
           <linearGradient id="cmpGridGrp" x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stop-color="currentColor" stop-opacity="0.06" />
@@ -231,25 +210,32 @@
         </defs>
         <rect x="0" y="0" width="420" height="220" fill="url(#cmpGridGrp)" rx="12" />
         @for (pid of groupOrderedIds(); track pid; let idx = $index) {
-          <polyline
-            [attr.points]="groupPolylinePoints(pid)"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linejoin="round"
-            stroke-linecap="round"
-            [class]="strokeClassAt(idx)"
-          />
+        <polyline [attr.points]="groupPolylinePoints(pid)" fill="none" stroke="currentColor"
+          stroke-linejoin="round" stroke-linecap="round" [class]="strokeClassAt(idx)"
+          [attr.stroke-width]="hoveredPatientId === pid ? '4.5' : '2.5'"
+          [style.opacity]="hoveredPatientId === pid || hoveredPatientId === null ? '1' : '0.3'"
+          class="cursor-pointer transition-all duration-200"
+          (mousemove)="onLineHover(pid, $event)" />
         }
       </svg>
+      
+      @if (hoveredPatientId) {
+      <div 
+        class="pointer-events-none fixed z-50 rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white shadow-lg dark:bg-gray-800"
+        [style.left.px]="mouseX + 15" 
+        [style.top.px]="mouseY + 15"
+      >
+        {{ nameForPatientId(hoveredPatientId) }}
+      </div>
+      }
     </div>
 
     <div class="mt-4 flex flex-wrap gap-4 text-xs text-pm-muted dark:text-pm-muted-dark">
       @for (pid of groupOrderedIds(); track pid; let idx = $index) {
-        <span class="inline-flex items-center gap-2">
-          <span class="h-0.5 w-8 border-t-2 border-current" [class]="strokeClassAt(idx)"></span>
-          {{ nameForPatientId(pid) }} (real)
-        </span>
+      <span class="inline-flex items-center gap-2">
+        <span class="h-0.5 w-8 border-t-4 border-current" [class]="strokeClassAt(idx)"></span>
+        {{ nameForPatientId(pid) }} (real)
+      </span>
       }
     </div>
   </section>

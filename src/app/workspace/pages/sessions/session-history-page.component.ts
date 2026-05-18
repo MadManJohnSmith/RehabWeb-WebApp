@@ -8,6 +8,7 @@ import { PatientsApiService } from '../../services/patients-api.service';
 import { SessionHistoryApiService } from '../../services/session-history-api.service';
 import { ToastService } from '../../../core/toast.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
+import { Title } from '@angular/platform-browser';
 
 type SessionListVm = {
   rows: SessionListRowDto[];
@@ -28,6 +29,7 @@ export class SessionHistoryPageComponent {
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly titleService = inject(Title);
 
   readonly search = signal('');
   readonly page = signal(1);
@@ -109,6 +111,7 @@ export class SessionHistoryPageComponent {
   readonly detail = signal<SessionDetailDto | null>(null);
 
   constructor() {
+    this.titleService.setTitle('Historial de sesiones | RehabWeb');
     afterNextRender(() => {
       if (!isPlatformBrowser(this.platformId)) {
         return;

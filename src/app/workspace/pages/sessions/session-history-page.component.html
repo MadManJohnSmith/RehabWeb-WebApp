@@ -94,10 +94,13 @@
               <td class="px-4 py-3 font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ r.score }}</td>
               <td class="px-4 py-3">
                 <span
-                  class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                  [ngClass]="statusNgClass(r)"
-                >
-                  {{ r.status }}
+                    class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    [ngClass]="statusNgClass(r)"
+                  >
+                    @if (r.status === 'Excelente') { ✓ }
+                    @else if (r.status === 'Bueno') { ↑ }
+                    @else if (r.status === 'Regular') { ~ }
+                    {{ r.status }}
                 </span>
               </td>
               <td class="px-4 py-3 text-center">
@@ -105,6 +108,7 @@
                   type="button"
                   class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-pm-border text-pm-muted transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-muted-dark"
                   aria-label="Abrir detalle de sesión"
+                  title="Ver detalle de sesión"
                   (click)="openDetail(r)"
                 >
                   <app-ui-icon name="chevron-right" [size]="18" />

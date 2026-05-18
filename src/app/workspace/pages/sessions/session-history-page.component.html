@@ -69,48 +69,62 @@
         </thead>
         <tbody class="divide-y divide-pm-border dark:divide-pm-border-dark">
           @for (r of listRows(); track r.id) {
-          <tr class="hover:bg-pm-canvas/60 dark:hover:bg-pm-canvas-dark/40">
-            <td class="px-4 py-3 font-mono text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark">
-              {{ r.id }}
-            </td>
-            <td class="px-4 py-3 text-pm-muted dark:text-pm-muted-dark">{{ r.date }}</td>
-            <td class="px-4 py-3 font-medium text-pm-ink dark:text-pm-ink-on-dark">
-              <a [routerLink]="['/app/pacientes', r.patientId]" class="text-pm-primary hover:underline">{{ r.patient
-                }}</a>
-            </td>
-            <td class="px-4 py-3 text-pm-muted dark:text-pm-muted-dark">{{ r.program }}</td>
-            <td class="px-4 py-3">
-              <span
-                class="inline-flex items-center gap-1 rounded-full bg-pm-canvas px-2 py-0.5 text-xs font-medium text-pm-ink dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark">
-                {{ formatDuration(r.durationMin) }}
-              </span>
-            </td>
-            <td class="px-4 py-3 font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ r.score }}</td>
-            <td class="px-4 py-3">
-              <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold" [ngClass]="statusNgClass(r)">
-                {{ r.status }}
-              </span>
-            </td>
-            <td class="px-4 py-3 text-center">
-              <button type="button"
-                class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-pm-border text-pm-muted transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-muted-dark"
-                aria-label="Abrir detalle de sesión" (click)="openDetail(r)">
-                <app-ui-icon name="chevron-right" [size]="18" />
-              </button>
-            </td>
-          </tr>
+            <tr class="hover:bg-pm-canvas/60 dark:hover:bg-pm-canvas-dark/40">
+              <td class="px-4 py-3 font-mono text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark">
+                {{ r.id }}
+              </td>
+              <td class="px-4 py-3 text-pm-muted dark:text-pm-muted-dark">{{ formatDate(r.date) }}</td>
+              <td class="px-4 py-3 font-medium text-pm-ink dark:text-pm-ink-on-dark">
+                <a [routerLink]="['/app/pacientes', r.patientId]" class="text-pm-primary hover:underline">{{ r.patient }}</a>
+              </td>
+              <td class="px-4 py-3 text-pm-muted dark:text-pm-muted-dark">{{ r.program }}</td>
+              <td class="px-4 py-3">
+                <span
+                  class="inline-flex items-center gap-1 rounded-full bg-pm-canvas px-2 py-0.5 text-xs font-medium text-pm-ink dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
+                >
+                  {{ formatDuration(r.durationMin) }}
+                </span>
+              </td>
+              <td class="px-4 py-3 font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ r.score }}</td>
+              <td class="px-4 py-3">
+                <span
+                    class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    [ngClass]="statusNgClass(r)"
+                  >
+                    @if (r.status === 'Excelente') { ✓ }
+                    @else if (r.status === 'Bueno') { ↑ }
+                    @else if (r.status === 'Regular') { ~ }
+                    {{ r.status }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-center">
+                <button
+                  type="button"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-pm-border text-pm-muted transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-muted-dark"
+                  aria-label="Abrir detalle de sesión"
+                  title="Ver detalle de sesión"
+                  (click)="openDetail(r)"
+                >
+                  <app-ui-icon name="chevron-right" [size]="18" />
+                </button>
+              </td>
+            </tr>
           } @empty {
-          <tr>
-            <td colspan="8" class="px-4 py-10 text-center text-sm text-pm-muted dark:text-pm-muted-dark">
-              No hay sesiones que coincidan con los filtros.
-            </td>
-          </tr>
-          }
+  <tr>
+    <td colspan="8" class="px-4 py-10 text-center">
+      <p class="text-sm font-semibold text-pm-ink dark:text-pm-ink-on-dark">
+        Sin sesiones registradas
+      </p>
+      <p class="mt-1 text-xs text-pm-muted dark:text-pm-muted-dark">
+        No hay sesiones que coincidan con los filtros aplicados.
+      </p>
+    </td>
+  </tr>
+}
         </tbody>
       </table>
     </div>
     }
-
     <div
       class="flex flex-col gap-3 border-t border-pm-border px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between dark:border-pm-border-dark">
       <div class="flex flex-wrap items-center gap-2 text-xs text-pm-muted dark:text-pm-muted-dark">
@@ -150,7 +164,6 @@
         </div>
       </div>
     </div>
-  </div>
 </div>
 
 @if (detailOpen()) {

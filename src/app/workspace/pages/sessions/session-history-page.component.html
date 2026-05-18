@@ -112,16 +112,17 @@
               </td>
             </tr>
           } @empty {
-            <tr>
-              <td colspan="8" class="px-4 py-10 text-center text-sm text-pm-muted dark:text-pm-muted-dark">
-                No hay sesiones que coincidan con los filtros.
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    }
+  <tr>
+    <td colspan="8" class="px-4 py-10 text-center">
+      <p class="text-sm font-semibold text-pm-ink dark:text-pm-ink-on-dark">
+        Sin sesiones registradas
+      </p>
+      <p class="mt-1 text-xs text-pm-muted dark:text-pm-muted-dark">
+        No hay sesiones que coincidan con los filtros aplicados.
+      </p>
+    </td>
+  </tr>
+}
 
     <div
       class="flex flex-col gap-3 border-t border-pm-border px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between dark:border-pm-border-dark"

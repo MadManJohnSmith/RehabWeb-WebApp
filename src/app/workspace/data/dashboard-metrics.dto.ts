@@ -30,6 +30,10 @@ export interface SessionRowDto {
 export interface ReportSnippetDto {
   title: string;
   date: string;
+  patientId: number;
+  patientName: string;
+  sessionId: number;
+  occurredAt: string;
 }
 
 export interface RingMetricDto {

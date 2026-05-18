@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { afterNextRender, Component, inject, PLATFORM_ID, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { ToastService } from '../../../core/toast.service';
@@ -22,6 +23,7 @@ export class ReportsPageComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly clinicalExport = inject(ClinicalExportApiService);
   private readonly patientsApi = inject(PatientsApiService);
+  private readonly route = inject(ActivatedRoute);
 
   pacienteId = '';
   desde = '2026-01-01';
@@ -41,6 +43,19 @@ export class ReportsPageComponent {
       if (!isPlatformBrowser(this.platformId)) {
         return;
       }
+
+      this.route.queryParams.subscribe((params) => {
+        if (params['patientId']) {
+          this.pacienteId = String(params['patientId']);
+        }
+        if (params['dateFrom']) {
+          this.desde = String(params['dateFrom']);
+        }
+        if (params['dateTo']) {
+          this.hasta = String(params['dateTo']);
+        }
+      });
+
       this.loadPatients();
     });
   }

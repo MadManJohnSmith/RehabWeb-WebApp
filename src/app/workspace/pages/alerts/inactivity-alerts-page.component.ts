@@ -1,8 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, inject, signal, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { INACTIVITY_ALERTS_MOCK_VIEW } from '../../data/inactivity-alerts.mock';
 import { InactivityAlertsDataService } from '../../services/inactivity-alerts-data.service';
+import type { InactivityAlertsViewDto } from '../../data/inactivity-alerts.dto';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
 
 @Component({
@@ -11,12 +10,35 @@ import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
   imports: [RouterLink, UiIconComponent],
   templateUrl: './inactivity-alerts-page.component.html',
 })
-export class InactivityAlertsPageComponent {
+export class InactivityAlertsPageComponent implements OnInit {
   private readonly alertsData = inject(InactivityAlertsDataService);
+  private readonly cd = inject(ChangeDetectorRef);
 
-  readonly vm = toSignal(this.alertsData.getAlertsView(), {
-    initialValue: INACTIVITY_ALERTS_MOCK_VIEW,
-  });
+  private readonly emptyAlerts: InactivityAlertsViewDto = {
+    thresholdDays: 3,
+    inactiveCount: 0,
+    alerts: [],
+  };
+
+  readonly vm = signal<InactivityAlertsViewDto>(this.emptyAlerts);
+  readonly loadState = signal<'loading' | 'ok' | 'error'>('loading');
+  readonly loadError = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.alertsData.getAlertsView().subscribe({
+      next: (data) => {
+        this.vm.set(data);
+        this.loadState.set('ok');
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.vm.set(this.emptyAlerts);
+        this.loadState.set('error');
+        this.loadError.set('No se pudieron cargar las alertas desde el API. Comprueba que el backend esté en marcha.');
+        this.cd.detectChanges();
+      }
+    });
+  }
 
   protected readonly log = signal<string[]>([]);
 

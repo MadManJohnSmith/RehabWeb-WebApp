@@ -3,14 +3,13 @@ import { afterNextRender, Component, computed, inject, PLATFORM_ID, signal } fro
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
-import { PATIENT_DETAIL_MOCK, type PatientDetailRecord } from '../../data/patient-detail.mock';
-import type { TherapistPatientRowDto } from '../../data/patients-api.types';
-import { PatientsApiService } from '../../services/patients-api.service';
+import type { PatientDetailRecord } from '../../services/patient-detail-api.service';
+import { PatientDetailApiService } from '../../services/patient-detail-api.service';
 import { ToastService } from '../../../core/toast.service';
 
-/** Vista de ficha: cabecera API + gráficos de demostración hasta integrar métricas por paciente. */
+/** Vista de ficha: Integrada a la API real. */
 export type PatientDetailVm = PatientDetailRecord & {
-  api?: TherapistPatientRowDto;
+  sessions: any[];
 };
 
 @Component({
@@ -22,7 +21,7 @@ export type PatientDetailVm = PatientDetailRecord & {
 export class PatientDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
-  private readonly api = inject(PatientsApiService);
+  private readonly api = inject(PatientDetailApiService);
   private readonly platformId = inject(PLATFORM_ID);
 
   private readonly patientIdParam = toSignal(
@@ -30,26 +29,8 @@ export class PatientDetailPageComponent {
     { initialValue: '' },
   );
 
-  readonly apiRow = signal<TherapistPatientRowDto | null>(null);
   readonly loadState = signal<'idle' | 'loading' | 'error' | 'ok'>('idle');
-
-  private readonly demoFallback = PATIENT_DETAIL_MOCK['p-001'];
-
-  readonly patient = computed<PatientDetailVm | null>(() => {
-    const row = this.apiRow();
-    if (!row) {
-      return null;
-    }
-    const d = this.demoFallback;
-    return {
-      ...d,
-      id: String(row.patientId),
-      name: row.fullName,
-      condition: row.primaryDiagnosis || '—',
-      status: row.clinicalStatus,
-      api: row,
-    };
-  });
+  readonly patient = signal<PatientDetailVm | null>(null);
 
   protected readonly chartDots = computed(() => {
     const p = this.patient();
@@ -73,10 +54,11 @@ export class PatientDetailPageComponent {
         this.toast.show('ID de paciente no válido. Usa el número del directorio (API).');
         return;
       }
+      
       this.loadState.set('loading');
-      this.api.getFicha(id).subscribe({
+      this.api.getPatientDetail(id).subscribe({
         next: (data) => {
-          this.apiRow.set(data);
+          this.patient.set({ ...data.profile, sessions: data.sessions });
           this.loadState.set('ok');
         },
         error: () => {

@@ -1,11 +1,10 @@
 import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, map, of } from 'rxjs';
 import { ApiConfigService } from '../../core/api-config.service';
 import type { InactivityAlertsApiResponse } from '../data/inactivity-alerts-api.types';
 import type { InactivityAlertsViewDto } from '../data/inactivity-alerts.dto';
 import { mapInactivityApiResponseToView } from '../data/inactivity-alerts.mapper';
-import { INACTIVITY_ALERTS_MOCK_VIEW } from '../data/inactivity-alerts.mock';
 
 @Injectable({ providedIn: 'root' })
 export class InactivityAlertsDataService {
@@ -18,8 +17,7 @@ export class InactivityAlertsDataService {
    */
   getAlertsView(): Observable<InactivityAlertsViewDto> {
     return this.http.get<InactivityAlertsApiResponse>(this.api.url('/inactivity-alerts/')).pipe(
-      map((payload) => mapInactivityApiResponseToView(payload)),
-      catchError(() => of(INACTIVITY_ALERTS_MOCK_VIEW)),
+      map((payload) => mapInactivityApiResponseToView(payload))
     );
   }
 }

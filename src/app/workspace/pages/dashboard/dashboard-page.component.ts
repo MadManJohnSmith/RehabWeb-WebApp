@@ -11,7 +11,6 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
-import { DASHBOARD_METRICS_MOCK } from '../../data/dashboard-metrics.mock';
 import type { DashboardMetricsDto, TemporalMetricPointDto, ReportSnippetDto } from '../../data/dashboard-metrics.dto';
 import { calculateExportDateRange } from '../../data/export-date-range.util';
 import { DashboardDataService } from '../../services/dashboard-data.service';
@@ -43,9 +42,21 @@ export class DashboardPageComponent {
   readonly inactivityCronHint =
     'En producción: un Cron en el servidor revisa cada día las últimas sesiones y marca inactividad cuando pasan más de 3 días sin registro.';
 
+  private readonly emptyDashboard: DashboardMetricsDto = {
+    inactivityHeadline: '',
+    inactivityCount: 0,
+    inactivityPatients: [],
+    ringMetrics: [],
+    temporalSeries: [],
+    romByWeek: [],
+    recentSessions: [],
+    reviewToday: [],
+    reportSnippets: []
+  };
+
   readonly loadState = signal<'loading' | 'ok' | 'error'>('loading');
   readonly loadError = signal<string | null>(null);
-  readonly vm = signal<DashboardMetricsDto>(DASHBOARD_METRICS_MOCK);
+  readonly vm = signal<DashboardMetricsDto>(this.emptyDashboard);
 
   protected readonly chartTooltip = signal<{ x: number; y: number; label: string } | null>(null);
 
@@ -100,7 +111,7 @@ export class DashboardPageComponent {
         this.loadState.set('ok');
       },
       error: () => {
-        this.vm.set(DASHBOARD_METRICS_MOCK);
+        this.vm.set(this.emptyDashboard);
         this.cd.detectChanges();
         requestAnimationFrame(() => {});
         this.loadState.set('error');

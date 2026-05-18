@@ -8,12 +8,12 @@ import {
   PLATFORM_ID,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
 import { DASHBOARD_METRICS_MOCK } from '../../data/dashboard-metrics.mock';
-import type { DashboardMetricsDto } from '../../data/dashboard-metrics.dto';
-import type { TemporalMetricPointDto } from '../../data/dashboard-metrics.dto';
+import type { DashboardMetricsDto, TemporalMetricPointDto, ReportSnippetDto } from '../../data/dashboard-metrics.dto';
+import { calculateExportDateRange } from '../../data/export-date-range.util';
 import { DashboardDataService } from '../../services/dashboard-data.service';
 
 type ChartDotTrend = 'start' | 'improved' | 'regressed' | 'flat';
@@ -35,6 +35,7 @@ export class DashboardPageComponent {
   // detectChanges para forzar repintado tras actualizar señales
   private readonly cd = inject(ChangeDetectorRef);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
   private readonly dashboardData = inject(DashboardDataService);
   private readonly platformId = inject(PLATFORM_ID);
 
@@ -127,10 +128,23 @@ export class DashboardPageComponent {
     this.chartTooltip.set(null);
   }
 
-  openReportSnippet(title: string): void {
-    this.toast.show(
-      `Resumen «${title}»: la descarga se enlazará al módulo de reportes en el servidor.`,
-    );
+  openReportSnippet(snippet: ReportSnippetDto): void {
+    if (!snippet.patientId) {
+      this.toast.show(`El resumen «${snippet.title}» no tiene datos de paciente para exportar.`);
+      return;
+    }
+    
+    this.toast.show(`Abriendo exportación para ${snippet.patientName}...`);
+    
+    const { dateFrom, dateTo } = calculateExportDateRange(snippet.occurredAt);
+    
+    this.router.navigate(['/app/reportes'], {
+      queryParams: {
+        patientId: snippet.patientId,
+        dateFrom,
+        dateTo
+      }
+    });
   }
 
   romBarHeightPx(romDegrees: number): number {

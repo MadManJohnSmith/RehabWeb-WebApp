@@ -101,6 +101,10 @@ function buildReportSnippets(recent: DashboardApiRecentSession[]): ReportSnippet
   return (recent ?? []).slice(0, 4).map((s) => ({
     title: s.programLabel?.trim() || `Sesión #${s.id}`,
     date: formatDateShort(s.occurredAt),
+    patientId: s.patientId,
+    patientName: s.patientName,
+    sessionId: s.id,
+    occurredAt: s.occurredAt,
   }));
 }
 

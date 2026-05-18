@@ -5,63 +5,57 @@
       <h1 class="mt-1 text-xl font-bold text-pm-ink dark:text-pm-ink-on-dark">Historial de sesiones</h1>
       <p class="mt-1 text-sm text-pm-muted dark:text-pm-muted-dark">
         Listado en <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">orden cronológico descendente</span>
-        desde <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">GET /api/v1/sessions/</span> (paginación y filtros en servidor). El detalle abre
-        <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">GET /api/v1/sessions/&lt;id&gt;/</span> sin recargar la página.
+        desde <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">GET /api/v1/sessions/</span> (paginación
+        y filtros en servidor). El detalle abre
+        <span class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">GET /api/v1/sessions/&lt;id&gt;/</span> sin
+        recargar la página.
       </p>
     </div>
     <div class="flex w-full flex-col gap-2 sm:max-w-md sm:flex-row">
       <div class="relative min-w-0 flex-1">
-        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-pm-muted dark:text-pm-muted-dark">
+        <span
+          class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-pm-muted dark:text-pm-muted-dark">
           <app-ui-icon name="search" [size]="16" />
         </span>
-        <input
-          type="search"
-          [value]="search()"
-          (input)="onSearchInput($event)"
-          placeholder="ID, paciente, programa…"
-          class="w-full rounded-control border border-pm-border bg-pm-surface py-2 pl-9 pr-3 text-sm outline-none ring-pm-primary focus:ring-2 dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
-        />
+        <input type="search" [value]="search()" (input)="onSearchInput($event)"
+          placeholder="ID, fecha, paciente, programa…"
+          class="w-full rounded-control border border-pm-border bg-pm-surface py-2 pl-9 pr-3 text-sm outline-none ring-pm-primary focus:ring-2 dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark" />
       </div>
       <select
         class="w-full shrink-0 rounded-control border border-pm-border bg-pm-surface px-3 py-2 text-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark sm:w-48"
-        [value]="patientFilter()"
-        (change)="onPatientFilterChange($event)"
-        aria-label="Filtrar por paciente"
-      >
+        [value]="patientFilter()" (change)="onPatientFilterChange($event)" aria-label="Filtrar por paciente">
         @for (opt of patientFilterOptions(); track opt.id) {
-          <option [value]="opt.id">{{ opt.label }}</option>
+        <option [value]="opt.id">{{ opt.label }}</option>
         }
       </select>
     </div>
   </div>
 
   <div
-    class="overflow-hidden rounded-card border border-pm-border bg-pm-surface shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark"
-  >
+    class="overflow-hidden rounded-card border border-pm-border bg-pm-surface shadow-pm-sm dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-sm-dark">
     @if (listLoading()) {
-      <div class="space-y-3 px-4 py-4">
-        <div class="h-4 w-44 animate-pulse rounded bg-pm-canvas dark:bg-pm-canvas-dark"></div>
-        <div class="h-10 animate-pulse rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
-        <div class="h-10 animate-pulse rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
-        <div class="h-10 animate-pulse rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
-      </div>
+    <div class="space-y-3 px-4 py-4">
+      <div class="h-4 w-44 animate-pulse rounded bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+      <div class="h-10 animate-pulse rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+      <div class="h-10 animate-pulse rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+      <div class="h-10 animate-pulse rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+    </div>
     } @else if (listError(); as err) {
-      <div class="px-4 py-6">
-        <p class="rounded-control border border-pm-coral bg-pm-danger-bg px-3 py-2 text-sm text-pm-coral dark:border-pm-coral dark:bg-pm-danger-bg-dark">
-          {{ err }}
-        </p>
-        <button
-          type="button"
-          (click)="retryList()"
-          class="mt-3 inline-flex rounded-control border border-pm-border px-3 py-1.5 text-sm font-medium text-pm-ink hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark"
-        >
-          Reintentar carga
-        </button>
-      </div>
+    <div class="px-4 py-6">
+      <p
+        class="rounded-control border border-pm-coral bg-pm-danger-bg px-3 py-2 text-sm text-pm-coral dark:border-pm-coral dark:bg-pm-danger-bg-dark">
+        {{ err }}
+      </p>
+      <button type="button" (click)="retryList()"
+        class="mt-3 inline-flex rounded-control border border-pm-border px-3 py-1.5 text-sm font-medium text-pm-ink hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-ink-on-dark">
+        Reintentar carga
+      </button>
+    </div>
     } @else {
     <div class="overflow-x-auto">
       <table class="min-w-[920px] w-full border-collapse text-left text-sm">
-        <thead class="bg-pm-canvas text-xs font-semibold uppercase tracking-wide text-pm-muted dark:bg-pm-canvas-dark dark:text-pm-muted-dark">
+        <thead
+          class="bg-pm-canvas text-xs font-semibold uppercase tracking-wide text-pm-muted dark:bg-pm-canvas-dark dark:text-pm-muted-dark">
           <tr>
             <th class="px-4 py-3">ID sesión</th>
             <th class="px-4 py-3">Fecha</th>
@@ -75,48 +69,42 @@
         </thead>
         <tbody class="divide-y divide-pm-border dark:divide-pm-border-dark">
           @for (r of listRows(); track r.id) {
-            <tr class="hover:bg-pm-canvas/60 dark:hover:bg-pm-canvas-dark/40">
-              <td class="px-4 py-3 font-mono text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark">
-                {{ r.id }}
-              </td>
-              <td class="px-4 py-3 text-pm-muted dark:text-pm-muted-dark">{{ r.date }}</td>
-              <td class="px-4 py-3 font-medium text-pm-ink dark:text-pm-ink-on-dark">
-                <a [routerLink]="['/app/pacientes', r.patientId]" class="text-pm-primary hover:underline">{{ r.patient }}</a>
-              </td>
-              <td class="px-4 py-3 text-pm-muted dark:text-pm-muted-dark">{{ r.program }}</td>
-              <td class="px-4 py-3">
-                <span
-                  class="inline-flex items-center gap-1 rounded-full bg-pm-canvas px-2 py-0.5 text-xs font-medium text-pm-ink dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark"
-                >
-                  {{ formatDuration(r.durationMin) }}
-                </span>
-              </td>
-              <td class="px-4 py-3 font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ r.score }}</td>
-              <td class="px-4 py-3">
-                <span
-                  class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                  [ngClass]="statusNgClass(r)"
-                >
-                  {{ r.status }}
-                </span>
-              </td>
-              <td class="px-4 py-3 text-center">
-                <button
-                  type="button"
-                  class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-pm-border text-pm-muted transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-muted-dark"
-                  aria-label="Abrir detalle de sesión"
-                  (click)="openDetail(r)"
-                >
-                  <app-ui-icon name="chevron-right" [size]="18" />
-                </button>
-              </td>
-            </tr>
+          <tr class="hover:bg-pm-canvas/60 dark:hover:bg-pm-canvas-dark/40">
+            <td class="px-4 py-3 font-mono text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark">
+              {{ r.id }}
+            </td>
+            <td class="px-4 py-3 text-pm-muted dark:text-pm-muted-dark">{{ r.date }}</td>
+            <td class="px-4 py-3 font-medium text-pm-ink dark:text-pm-ink-on-dark">
+              <a [routerLink]="['/app/pacientes', r.patientId]" class="text-pm-primary hover:underline">{{ r.patient
+                }}</a>
+            </td>
+            <td class="px-4 py-3 text-pm-muted dark:text-pm-muted-dark">{{ r.program }}</td>
+            <td class="px-4 py-3">
+              <span
+                class="inline-flex items-center gap-1 rounded-full bg-pm-canvas px-2 py-0.5 text-xs font-medium text-pm-ink dark:bg-pm-canvas-dark dark:text-pm-ink-on-dark">
+                {{ formatDuration(r.durationMin) }}
+              </span>
+            </td>
+            <td class="px-4 py-3 font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ r.score }}</td>
+            <td class="px-4 py-3">
+              <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold" [ngClass]="statusNgClass(r)">
+                {{ r.status }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <button type="button"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-pm-border text-pm-muted transition hover:border-pm-primary hover:text-pm-primary dark:border-pm-border-dark dark:text-pm-muted-dark"
+                aria-label="Abrir detalle de sesión" (click)="openDetail(r)">
+                <app-ui-icon name="chevron-right" [size]="18" />
+              </button>
+            </td>
+          </tr>
           } @empty {
-            <tr>
-              <td colspan="8" class="px-4 py-10 text-center text-sm text-pm-muted dark:text-pm-muted-dark">
-                No hay sesiones que coincidan con los filtros.
-              </td>
-            </tr>
+          <tr>
+            <td colspan="8" class="px-4 py-10 text-center text-sm text-pm-muted dark:text-pm-muted-dark">
+              No hay sesiones que coincidan con los filtros.
+            </td>
+          </tr>
           }
         </tbody>
       </table>
@@ -124,8 +112,7 @@
     }
 
     <div
-      class="flex flex-col gap-3 border-t border-pm-border px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between dark:border-pm-border-dark"
-    >
+      class="flex flex-col gap-3 border-t border-pm-border px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between dark:border-pm-border-dark">
       <div class="flex flex-wrap items-center gap-2 text-xs text-pm-muted dark:text-pm-muted-dark">
         <span>
           Mostrando {{ listRows().length }} de {{ listTotal() }} sesiones
@@ -135,42 +122,29 @@
           <span class="whitespace-nowrap">Por página</span>
           <select
             class="rounded-control border border-pm-border bg-pm-surface px-2 py-1 text-sm text-pm-ink dark:border-pm-border-dark dark:bg-pm-surface-dark dark:text-pm-ink-on-dark"
-            [value]="pageSize()"
-            (change)="setPageSize(+$any($event.target).value)"
-          >
+            [value]="pageSize()" (change)="setPageSize(+$any($event.target).value)">
             @for (n of pageSizeOptions; track n) {
-              <option [value]="n">{{ n }}</option>
+            <option [value]="n">{{ n }}</option>
             }
           </select>
         </label>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          (click)="viewReportFirstVisible()"
-          [disabled]="!listRows().length"
-          class="inline-flex items-center justify-center rounded-control border border-pm-border px-4 py-2 text-sm font-medium text-pm-ink hover:border-pm-primary hover:text-pm-primary disabled:pointer-events-none disabled:opacity-40 dark:border-pm-border-dark dark:text-pm-ink-on-dark"
-        >
+        <button type="button" (click)="viewReportFirstVisible()" [disabled]="!listRows().length"
+          class="inline-flex items-center justify-center rounded-control border border-pm-border px-4 py-2 text-sm font-medium text-pm-ink hover:border-pm-primary hover:text-pm-primary disabled:pointer-events-none disabled:opacity-40 dark:border-pm-border-dark dark:text-pm-ink-on-dark">
           Reporte (primera fila)
         </button>
         <div class="flex items-center gap-2 text-xs text-pm-muted dark:text-pm-muted-dark">
-          <button
-            type="button"
+          <button type="button"
             class="rounded-control border border-pm-border px-2 py-1 hover:bg-pm-canvas dark:border-pm-border-dark dark:hover:bg-pm-canvas-dark"
-            (click)="setPage(page() - 1)"
-            [disabled]="page() <= 1"
-            [class.opacity-40]="page() <= 1"
-          >
+            (click)="setPage(page() - 1)" [disabled]="page() <= 1" [class.opacity-40]="page() <= 1">
             Anterior
           </button>
           <span>Página {{ page() }} / {{ totalPages() }}</span>
-          <button
-            type="button"
+          <button type="button"
             class="rounded-control border border-pm-border px-2 py-1 hover:bg-pm-canvas dark:border-pm-border-dark dark:hover:bg-pm-canvas-dark"
-            (click)="setPage(page() + 1)"
-            [disabled]="page() >= totalPages()"
-            [class.opacity-40]="page() >= totalPages()"
-          >
+            (click)="setPage(page() + 1)" [disabled]="page() >= totalPages()"
+            [class.opacity-40]="page() >= totalPages()">
             Siguiente
           </button>
         </div>
@@ -180,102 +154,93 @@
 </div>
 
 @if (detailOpen()) {
-  <div
-    class="fixed inset-0 z-40 bg-pm-ink/35 dark:bg-pm-ink/50"
-    (click)="closeDetail()"
-    (keydown.escape)="closeDetail()"
-    tabindex="-1"
-    role="presentation"
-  ></div>
-  <aside
-    class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-pm-border bg-pm-surface shadow-pm-md dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-md-dark"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="session-detail-title"
-  >
-    <div class="flex items-start justify-between gap-3 border-b border-pm-border px-4 py-4 dark:border-pm-border-dark">
-      <div class="min-w-0">
-        <p id="session-detail-title" class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">
-          Detalle de sesión
-        </p>
-        @if (detail(); as d) {
-          <p class="mt-1 font-mono text-sm font-bold text-pm-ink dark:text-pm-ink-on-dark">{{ d.id }}</p>
-        } @else {
-          <p class="mt-1 text-sm font-medium text-pm-ink dark:text-pm-ink-on-dark">Cargando…</p>
-        }
-      </div>
-      <button
-        type="button"
-        (click)="closeDetail()"
-        class="shrink-0 rounded-control border border-pm-border px-3 py-1.5 text-sm font-medium text-pm-muted hover:text-pm-ink dark:border-pm-border-dark dark:text-pm-muted-dark dark:hover:text-pm-ink-on-dark"
-      >
-        Cerrar
-      </button>
-    </div>
-
-    <div class="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-      @if (detailLoading()) {
-        <div class="space-y-3 animate-pulse">
-          <div class="h-4 rounded bg-pm-canvas dark:bg-pm-canvas-dark"></div>
-          <div class="h-4 max-w-xs rounded bg-pm-canvas dark:bg-pm-canvas-dark"></div>
-          <div class="h-24 rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
-        </div>
-      } @else if (detailError(); as e) {
-        <p class="rounded-control border border-pm-coral bg-pm-danger-bg px-3 py-2 text-sm text-pm-coral dark:border-pm-coral dark:bg-pm-danger-bg-dark">
-          {{ e }}
-        </p>
-      } @else if (detail(); as d) {
-        <dl class="space-y-3 text-sm">
-          <div>
-            <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Fecha</dt>
-            <dd class="mt-0.5 font-medium text-pm-ink dark:text-pm-ink-on-dark">{{ d.date }}</dd>
-          </div>
-          <div>
-            <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Paciente</dt>
-            <dd class="mt-0.5">
-              <a [routerLink]="['/app/pacientes', d.patientId]" class="font-medium text-pm-primary hover:underline">{{
-                d.patient
-              }}</a>
-            </dd>
-          </div>
-          <div>
-            <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Programa</dt>
-            <dd class="mt-0.5 text-pm-ink dark:text-pm-ink-on-dark">{{ d.program }}</dd>
-          </div>
-          <div class="flex flex-wrap gap-4">
-            <div>
-              <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Duración</dt>
-              <dd class="mt-0.5 font-medium">{{ formatDuration(d.durationMin) }}</dd>
-            </div>
-            <div>
-              <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Puntuación</dt>
-              <dd class="mt-0.5 font-semibold text-pm-primary">{{ d.score }}</dd>
-            </div>
-            <div>
-              <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Adherencia</dt>
-              <dd class="mt-0.5 font-medium">{{ d.adherencePct }}%</dd>
-            </div>
-          </div>
-          <div>
-            <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Notas clínicas</dt>
-            <dd class="mt-1 rounded-control border border-pm-border bg-pm-canvas/60 p-3 text-pm-ink dark:border-pm-border-dark dark:bg-pm-canvas-dark/50 dark:text-pm-ink-on-dark">
-              {{ d.therapistNotes }}
-            </dd>
-          </div>
-          <div>
-            <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Ejercicios</dt>
-            <dd class="mt-2 space-y-2">
-              @for (ex of d.exercises; track $index) {
-                <div class="rounded-control border border-pm-border px-3 py-2 dark:border-pm-border-dark">
-                  <p class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ ex.name }}</p>
-                  <p class="text-xs text-pm-muted dark:text-pm-muted-dark">{{ ex.setsReps }}</p>
-                  <p class="mt-1 text-xs text-pm-ink dark:text-pm-ink-on-dark">{{ ex.notes }}</p>
-                </div>
-              }
-            </dd>
-          </div>
-        </dl>
+<div class="fixed inset-0 z-40 bg-pm-ink/35 dark:bg-pm-ink/50" (click)="closeDetail()" (keydown.escape)="closeDetail()"
+  tabindex="-1" role="presentation"></div>
+<aside
+  class="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-pm-border bg-pm-surface shadow-pm-md dark:border-pm-border-dark dark:bg-pm-surface-dark dark:shadow-pm-md-dark"
+  role="dialog" aria-modal="true" aria-labelledby="session-detail-title">
+  <div class="flex items-start justify-between gap-3 border-b border-pm-border px-4 py-4 dark:border-pm-border-dark">
+    <div class="min-w-0">
+      <p id="session-detail-title" class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">
+        Detalle de sesión
+      </p>
+      @if (detail(); as d) {
+      <p class="mt-1 font-mono text-sm font-bold text-pm-ink dark:text-pm-ink-on-dark">{{ d.id }}</p>
+      } @else {
+      <p class="mt-1 text-sm font-medium text-pm-ink dark:text-pm-ink-on-dark">Cargando…</p>
       }
     </div>
-  </aside>
+    <button type="button" (click)="closeDetail()"
+      class="shrink-0 rounded-control border border-pm-border px-3 py-1.5 text-sm font-medium text-pm-muted hover:text-pm-ink dark:border-pm-border-dark dark:text-pm-muted-dark dark:hover:text-pm-ink-on-dark">
+      Cerrar
+    </button>
+  </div>
+
+  <div class="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+    @if (detailLoading()) {
+    <div class="space-y-3 animate-pulse">
+      <div class="h-4 rounded bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+      <div class="h-4 max-w-xs rounded bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+      <div class="h-24 rounded-control bg-pm-canvas dark:bg-pm-canvas-dark"></div>
+    </div>
+    } @else if (detailError(); as e) {
+    <p
+      class="rounded-control border border-pm-coral bg-pm-danger-bg px-3 py-2 text-sm text-pm-coral dark:border-pm-coral dark:bg-pm-danger-bg-dark">
+      {{ e }}
+    </p>
+    } @else if (detail(); as d) {
+    <dl class="space-y-3 text-sm">
+      <div>
+        <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Fecha</dt>
+        <dd class="mt-0.5 font-medium text-pm-ink dark:text-pm-ink-on-dark">{{ d.date }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Paciente</dt>
+        <dd class="mt-0.5">
+          <a [routerLink]="['/app/pacientes', d.patientId]" class="font-medium text-pm-primary hover:underline">{{
+            d.patient
+            }}</a>
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Programa</dt>
+        <dd class="mt-0.5 text-pm-ink dark:text-pm-ink-on-dark">{{ d.program }}</dd>
+      </div>
+      <div class="flex flex-wrap gap-4">
+        <div>
+          <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Duración</dt>
+          <dd class="mt-0.5 font-medium">{{ formatDuration(d.durationMin) }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Puntuación</dt>
+          <dd class="mt-0.5 font-semibold text-pm-primary">{{ d.score }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Adherencia</dt>
+          <dd class="mt-0.5 font-medium">{{ d.adherencePct }}%</dd>
+        </div>
+      </div>
+      <div>
+        <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Notas clínicas</dt>
+        <dd
+          class="mt-1 rounded-control border border-pm-border bg-pm-canvas/60 p-3 text-pm-ink dark:border-pm-border-dark dark:bg-pm-canvas-dark/50 dark:text-pm-ink-on-dark">
+          {{ d.therapistNotes }}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs font-semibold uppercase text-pm-muted dark:text-pm-muted-dark">Ejercicios</dt>
+        <dd class="mt-2 space-y-2">
+          @for (ex of d.exercises; track $index) {
+          <div class="rounded-control border border-pm-border px-3 py-2 dark:border-pm-border-dark">
+            <p class="font-semibold text-pm-ink dark:text-pm-ink-on-dark">{{ ex.name }}</p>
+            <p class="text-xs text-pm-muted dark:text-pm-muted-dark">{{ ex.setsReps }}</p>
+            <p class="mt-1 text-xs text-pm-ink dark:text-pm-ink-on-dark">{{ ex.notes }}</p>
+          </div>
+          }
+        </dd>
+      </div>
+    </dl>
+    }
+  </div>
+</aside>
 }

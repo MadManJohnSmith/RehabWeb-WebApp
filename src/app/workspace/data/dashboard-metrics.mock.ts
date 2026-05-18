@@ -51,7 +51,7 @@ export const DASHBOARD_METRICS_MOCK: DashboardMetricsDto = {
   ],
   reviewToday: ['James Thornton', 'María Santos', 'Lucía Fernández'],
   reportSnippets: [
-    { title: 'Informe semanal cohorte A', date: '2026-04-14' },
-    { title: 'Comparativa ROM — hombro', date: '2026-04-12' },
+    { title: 'Informe semanal cohorte A', date: '2026-04-14', patientId: 1, patientName: 'James Thornton', sessionId: 101, occurredAt: '2026-04-14T10:00:00Z' },
+    { title: 'Comparativa ROM — hombro', date: '2026-04-12', patientId: 2, patientName: 'María Santos', sessionId: 102, occurredAt: '2026-04-12T15:30:00Z' },
   ],
 };

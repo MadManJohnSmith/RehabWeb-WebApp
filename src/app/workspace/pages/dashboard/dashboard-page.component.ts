@@ -8,12 +8,11 @@ import {
   PLATFORM_ID,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/toast.service';
 import { UiIconComponent } from '../../components/ui-icon/ui-icon.component';
-import { DASHBOARD_METRICS_MOCK } from '../../data/dashboard-metrics.mock';
-import type { DashboardMetricsDto } from '../../data/dashboard-metrics.dto';
-import type { TemporalMetricPointDto } from '../../data/dashboard-metrics.dto';
+import type { DashboardMetricsDto, TemporalMetricPointDto, ReportSnippetDto } from '../../data/dashboard-metrics.dto';
+import { calculateExportDateRange } from '../../data/export-date-range.util';
 import { DashboardDataService } from '../../services/dashboard-data.service';
 
 type ChartDotTrend = 'start' | 'improved' | 'regressed' | 'flat';
@@ -34,15 +33,28 @@ type ChartDot = {
 export class DashboardPageComponent implements AfterViewInit {
   private readonly cd = inject(ChangeDetectorRef);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
   private readonly dashboardData = inject(DashboardDataService);
   private readonly platformId = inject(PLATFORM_ID);
 
   readonly inactivityCronHint =
     'En producción: un Cron en el servidor revisa cada día las últimas sesiones y marca inactividad cuando pasan más de 3 días sin registro.';
 
+  private readonly emptyDashboard: DashboardMetricsDto = {
+    inactivityHeadline: '',
+    inactivityCount: 0,
+    inactivityPatients: [],
+    ringMetrics: [],
+    temporalSeries: [],
+    romByWeek: [],
+    recentSessions: [],
+    reviewToday: [],
+    reportSnippets: []
+  };
+
   readonly loadState = signal<'loading' | 'ok' | 'error'>('loading');
   readonly loadError = signal<string | null>(null);
-  readonly vm = signal<DashboardMetricsDto>(DASHBOARD_METRICS_MOCK);
+  readonly vm = signal<DashboardMetricsDto>(this.emptyDashboard);
 
   protected readonly chartTooltip = signal<{ x: number; y: number; label: string } | null>(null);
 
@@ -93,7 +105,7 @@ export class DashboardPageComponent implements AfterViewInit {
         this.loadState.set('ok');
       },
       error: () => {
-        this.vm.set(DASHBOARD_METRICS_MOCK);
+        this.vm.set(this.emptyDashboard);
         this.cd.detectChanges();
         requestAnimationFrame(() => {});
         this.loadState.set('error');
@@ -121,10 +133,23 @@ export class DashboardPageComponent implements AfterViewInit {
     this.chartTooltip.set(null);
   }
 
-  openReportSnippet(title: string): void {
-    this.toast.show(
-      `Resumen «${title}»: la descarga se enlazará al módulo de reportes en el servidor.`,
-    );
+  openReportSnippet(snippet: ReportSnippetDto): void {
+    if (!snippet.patientId) {
+      this.toast.show(`El resumen «${snippet.title}» no tiene datos de paciente para exportar.`);
+      return;
+    }
+    
+    this.toast.show(`Abriendo exportación para ${snippet.patientName}...`);
+    
+    const { dateFrom, dateTo } = calculateExportDateRange(snippet.occurredAt);
+    
+    this.router.navigate(['/app/reportes'], {
+      queryParams: {
+        patientId: snippet.patientId,
+        dateFrom,
+        dateTo
+      }
+    });
   }
 
   romBarHeightPx(romDegrees: number): number {

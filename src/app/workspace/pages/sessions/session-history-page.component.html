@@ -79,7 +79,7 @@
               <td class="px-4 py-3 font-mono text-xs font-medium text-pm-ink dark:text-pm-ink-on-dark">
                 {{ r.id }}
               </td>
-              <td class="px-4 py-3 text-pm-muted dark:text-pm-muted-dark">{{ r.date }}</td>
+              <td class="px-4 py-3 text-pm-muted dark:text-pm-muted-dark">{{ formatDate(r.date) }}</td>
               <td class="px-4 py-3 font-medium text-pm-ink dark:text-pm-ink-on-dark">
                 <a [routerLink]="['/app/pacientes', r.patientId]" class="text-pm-primary hover:underline">{{ r.patient }}</a>
               </td>

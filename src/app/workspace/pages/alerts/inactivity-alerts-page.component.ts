@@ -67,6 +67,11 @@ export class InactivityAlertsPageComponent {
   }
 
   resolver(id: string): void {
-    this.log.update((l) => [`Marcado resuelto (simulado): ${id}`, ...l].slice(0, 6));
-  }
+  this.vm.update((v) => ({
+    ...v,
+    alerts: v.alerts.filter((a) => a.alertId !== id),
+    inactiveCount: Math.max(0, v.inactiveCount - 1),
+  }));
+  this.log.update((l) => [`✓ Alerta ${id} marcada como resuelta`, ...l].slice(0, 6));
+}
 }

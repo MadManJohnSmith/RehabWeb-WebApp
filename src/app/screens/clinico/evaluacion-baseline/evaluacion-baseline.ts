@@ -11,8 +11,7 @@ import { ClinicoService } from '../../../services/clinico.service';
     <div class="page">
       <div class="card">
         <div class="card-header">
-          <h1>Evaluación Clínica Inicial (Baseline)</h1>
-          <p>Registro de evaluaciones clínicas estandarizadas — RF-CLIN-002</p>
+          <h1>Evaluación Clínica Inicial</h1>
         </div>
 
         <form class="form" (ngSubmit)="guardar()">

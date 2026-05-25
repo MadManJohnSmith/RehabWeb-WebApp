@@ -14,7 +14,6 @@ import autoTable from 'jspdf-autotable';
       <div class="card">
         <div class="card-header">
           <h1>Expediente Clínico Digital</h1>
-          <p>Exportación de expediente conforme a NOM-004-SSA3-2012 — RF-CLIN-004</p>
         </div>
 
         <div class="content">

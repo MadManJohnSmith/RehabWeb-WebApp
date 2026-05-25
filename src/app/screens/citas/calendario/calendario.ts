@@ -11,8 +11,7 @@ import { ClinicoService } from '../../../services/clinico.service';
     <div class="page">
       <div class="card">
         <div class="card-header">
-          <h1>Agendamiento de Citas</h1>
-          <p>Calendario de disponibilidad y solicitud de citas — RF-CITA-001 y RF-CITA-002</p>
+          <h1>Programación de Citas</h1>
         </div>
 
         <div class="content">

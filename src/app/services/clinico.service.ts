@@ -24,7 +24,6 @@ export interface PerfilClinico {
   familiar_parentesco: string;
   familiar_tel: string;
   clinica?: string;
-  consentimiento: boolean;
 }
 
 export interface EvaluacionBaseline {

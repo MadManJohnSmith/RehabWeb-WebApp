@@ -14,7 +14,6 @@ import autoTable from 'jspdf-autotable';
       <div class="card">
         <div class="card-header">
           <h1>Historial Clínico Longitudinal</h1>
-          <p>Registro completo de evaluaciones y evolución clínica — RF-CLIN-003</p>
         </div>
 
         <div class="content">

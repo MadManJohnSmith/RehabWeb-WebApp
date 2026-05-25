@@ -12,7 +12,6 @@ import { ClinicoService } from '../../../services/clinico.service';
       <div class="card">
         <div class="card-header">
           <h1>Perfil Clínico del Paciente</h1>
-          <p>Complete la información clínica inicial del paciente</p>
         </div>
 
         <form class="form" (ngSubmit)="guardar()">
@@ -21,11 +20,23 @@ import { ClinicoService } from '../../../services/clinico.service';
           <section>
             <h2>Datos Personales</h2>
             <div class="grid-2">
-              <div class="field">
-                <label>Nombre completo *</label>
-                <input type="text" [(ngModel)]="perfil.nombre" name="nombre" placeholder="Ej. Juan García López" required />
-                <span class="campo-error" *ngIf="errores.nombre">{{ errores.nombre }}</span>
-              </div>
+          <div class="field">
+            <label>Nombre(s) *</label>
+            <input type="text" [(ngModel)]="perfil.nombres" name="nombres" 
+              placeholder="Ej. Juan Carlos" required />
+            <span class="campo-error" *ngIf="errores.nombres">{{ errores.nombres }}</span>
+          </div>
+          <div class="field">
+            <label>Apellido Paterno *</label>
+            <input type="text" [(ngModel)]="perfil.apellidoPaterno" name="apellidoPaterno" 
+              placeholder="Ej. García" required />
+            <span class="campo-error" *ngIf="errores.apellidoPaterno">{{ errores.apellidoPaterno }}</span>
+          </div>
+          <div class="field">
+            <label>Apellido Materno</label>
+            <input type="text" [(ngModel)]="perfil.apellidoMaterno" name="apellidoMaterno" 
+              placeholder="Ej. López (opcional)" />
+          </div>
               <div class="field">
                 <label>Fecha de nacimiento *</label>
                 <input type="date" [(ngModel)]="perfil.fechaNacimiento" name="fechaNacimiento" required />
@@ -161,16 +172,7 @@ import { ClinicoService } from '../../../services/clinico.service';
             </div>
           </section>
 
-          <!-- CONSENTIMIENTO -->
-          <section>
-            <h2>Consentimiento Informado</h2>
-            <div class="consentimiento">
-              <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="perfil.consentimiento" name="consentimiento" required />
-                <span>Acepto el <strong>Aviso de Privacidad</strong> y el manejo de mis datos sensibles conforme a la <strong>Ley General de Protección de Datos Personales</strong>. Doy mi consentimiento informado para el tratamiento de rehabilitación digital.</span>
-              </label>
-            </div>
-          </section>
+          
 
           <!-- BOTONES -->
           <div class="actions">
@@ -386,7 +388,9 @@ export class PerfilClinicoComponent {
   error = '';
 
   perfil = {
-    nombre: '',
+    nombres: '',
+    apellidoPaterno: '',
+    apellidoMaterno: '',
     fechaNacimiento: '',
     sexo: '',
     ubicacion: '',
@@ -403,7 +407,6 @@ export class PerfilClinicoComponent {
     familiarParentesco: '',
     familiarTel: '',
     clinica: '',
-    consentimiento: false,
     notasAdicionales: '',
     estado: 'Activo'
   };
@@ -414,12 +417,20 @@ export class PerfilClinicoComponent {
     this.errores = {};
 
     // Nombre
-    if (!this.perfil.nombre.trim()) {
-      this.errores.nombre = 'El nombre es obligatorio.';
-    } else if (!/^[a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]+$/.test(this.perfil.nombre.trim())) {
-      this.errores.nombre = 'El nombre solo puede contener letras, acentos, ñ y espacios.';
-    } else if (this.perfil.nombre.trim().length < 3) {
-      this.errores.nombre = 'El nombre debe tener al menos 3 caracteres.';
+    if (!this.perfil.nombres.trim()) {
+      this.errores.nombres = 'El nombre es obligatorio.';
+    } else if (!/^[a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]+$/.test(this.perfil.nombres.trim())) {
+      this.errores.nombres = 'Solo letras, acentos y espacios.';
+    }
+
+    if (!this.perfil.apellidoPaterno.trim()) {
+      this.errores.apellidoPaterno = 'El apellido paterno es obligatorio.';
+    } else if (!/^[a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]+$/.test(this.perfil.apellidoPaterno.trim())) {
+      this.errores.apellidoPaterno = 'Solo letras, acentos y espacios.';
+    }
+
+    if (this.perfil.apellidoMaterno && !/^[a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]+$/.test(this.perfil.apellidoMaterno.trim())) {
+      this.errores.apellidoMaterno = 'Solo letras, acentos y espacios.';
     }
 
     // Fecha de nacimiento
@@ -504,10 +515,6 @@ export class PerfilClinicoComponent {
       this.errores.familiarTel = 'El teléfono debe tener exactamente 10 dígitos.';
     }
 
-    // Consentimiento
-    if (!this.perfil.consentimiento) {
-      this.errores.consentimiento = 'Debes aceptar el consentimiento informado.';
-    }
 
     return Object.keys(this.errores).length === 0;
   }
@@ -521,7 +528,7 @@ export class PerfilClinicoComponent {
     this.error = '';
 
     const datos = {
-      nombre: this.perfil.nombre,
+      nombre: `${this.perfil.nombres} ${this.perfil.apellidoPaterno} ${this.perfil.apellidoMaterno}`.trim(),
       fecha_nacimiento: this.perfil.fechaNacimiento,
       sexo: this.perfil.sexo,
       ubicacion: this.perfil.ubicacion,
@@ -538,7 +545,6 @@ export class PerfilClinicoComponent {
       familiar_parentesco: this.perfil.familiarParentesco,
       familiar_tel: this.perfil.familiarTel,
       clinica: this.perfil.clinica,
-      consentimiento: this.perfil.consentimiento,
       notas_adicionales: this.perfil.notasAdicionales,
       estado: this.perfil.estado
     };
@@ -565,12 +571,11 @@ export class PerfilClinicoComponent {
     this.error = '';
     this.errores = {};
     this.perfil = {
-      nombre: '', fechaNacimiento: '', sexo: '', ubicacion: '',
+      nombres: '', apellidoPaterno: '', apellidoMaterno: '', fechaNacimiento: '', sexo: '', ubicacion: '',
       diagnostico: '', fechaACV: '', tipoACV: '', nivelMovilidad: '',
       comorbilidades: '', medicamentos: '', historialMedico: '',
       restricciones: '', objetivos: '', familiarNombre: '',
       familiarParentesco: '', familiarTel: '', clinica: '',
-      consentimiento: false,
       notasAdicionales: '',
       estado: 'Activo'
     };
